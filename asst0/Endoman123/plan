@@ -1,0 +1,11 @@
+TESTPLAN:
+
+"1 + 2; 2 + 3; true AND false" - Tests basic operations and expression separations; should be OK
+"2 AND true" - Tests type mismatch
+"1 + + 2" - Unexpected expression end, also tests the subexpression parse
+"+ 3" - Tests expression typing; should only be an unexpected operator
+"1 + 2;2 + 3" - Test parse error with missing space
+"1 + 3;" - More missing space
+"1+ 2" - Test missing space in expression
+"; ; " - Test semicolon and space relation
+"1 + 2 3 + 4" - Test unexpected operands/operators
