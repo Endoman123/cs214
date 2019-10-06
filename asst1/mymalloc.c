@@ -1,12 +1,22 @@
-#ifndef _MYMALLOC_H
-#define _MYMALLOC_H
+#include <stdlib.h>
 
-#define malloc(x) mymalloc(x, __FILE__, __LINE__)
-#define free(x) myfree(x, __FILE__, __LINE__)
+#include "mymalloc.h"
 
-static char myblock[4096];
+/**
+ * Creates an allocation in the static block.
+ * Returns a pointer if the allocation was successful,
+ * NULL otherwise
+ */
+void *mymalloc(int size, char *file, int nLine) {
+    void *ret = NULL;
 
-void *mymalloc(void *, char *, int);
-void *myfree(void *, char *, int);
+    return ret; 
+}
 
-#endif
+/**
+ * Frees the memory location from the block.
+ * Returns 1 if successful, 0 otherwise.
+ */
+int myfree(void *pointer, char *file, int nLine) {
+    return 0;
+}
