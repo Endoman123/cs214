@@ -1,2 +1,11 @@
 # Ignore any dot files
 */.*
+
+# Ignore vim swap
+*/*.swp
+
+# Ignore compiled binaries
+*
+*/*.o
+!/**/
+!*.*

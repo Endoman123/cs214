@@ -6,3 +6,4 @@ mymalloc.o: mymalloc.h mymalloc.c
 
 clean:
 	rm -rf memgrind mymalloc.o
+
