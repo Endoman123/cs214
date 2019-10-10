@@ -1,11 +1,15 @@
-# Ignore any dot files
-*/.*
-
-# Ignore vim swap
-*/*.swp
-
-# Ignore compiled binaries
+# Start by ignoring everything
 *
-*/*.o
-!/**/
+
+# Track makefiles PLEASE
+!Makefile
+!makefile
+
+# Track everything that has a file extension, but ignore object files and
+# vim swap
 !*.*
+*.o
+*.swp
+
+# Track this
+!/**/
