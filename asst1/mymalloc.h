@@ -9,5 +9,6 @@ static char myblock[4096];
 
 void *mymalloc(int, char *, int);
 int myfree(void *, char *, int);
+unsigned long setBit(unsigned long, int, int);
 
 #endif

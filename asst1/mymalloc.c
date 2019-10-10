@@ -21,5 +21,15 @@ void *mymalloc(int size, char *file, int nLine) {
  * Returns 1 if successful, 0 otherwise.
  */
 int myfree(void *pointer, char *file, int nLine) {
+    *(unsigned long *)pointer = setBit(*(unsigned long *)pointer, 0, 0); 
+    
     return 0;
+}
+
+/**
+ * Given the pointer and offset, 
+ * sets the bit to the specified value.
+ */
+unsigned long setBit(unsigned long bytes, int value, int offset) {
+    return (unsigned long)((bytes & ~(1 << offset)) | (value << offset));
 }
