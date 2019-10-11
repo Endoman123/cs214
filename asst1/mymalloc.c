@@ -42,3 +42,13 @@ unsigned long setBit(unsigned long bytes, int value, int offset) {
 unsigned long getBits(unsigned long bytes, int width, int offset) {
     return (unsigned long)((bytes >> offset) & (unsigned long)(pow(2, width) - 1));
 }
+
+/**
+ * Metadata struct using bit fields.
+ * This takes up exactly 2 bytes or 16 bits of space. 
+ */ 
+typedef struct _metadata_ {
+    unsigned short blocksize : 12;
+    unsigned short in_use : 1;
+    unsigned short identifier : 3;
+} _metadata_;
