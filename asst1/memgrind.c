@@ -4,13 +4,6 @@
 #include "mymalloc.h"
 
 int main(int argc, char **argv) {
-    int test = 12;
-
-    test = (int)setBit((unsigned long)test, 1, 0); 
-    printf("%d\n", test);
-    
-    test = (int)getBits((unsigned long)test, 3, 1);
-    printf("%d\n", test);
-
-    return 0;
+    //A: malloc() 1 byte and immediately free it - do this 150 times
+    int i; for (i = 0; i < 150; i++) free(malloc(1));
 }
