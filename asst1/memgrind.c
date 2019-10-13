@@ -36,4 +36,6 @@ int main(int argc, char **argv) {
         gettimeofday(&end, NULL);
         workloadB[i] = (int) (end.tv_usec - start.tv_usec);
     }
+
+    return 0;
 }
