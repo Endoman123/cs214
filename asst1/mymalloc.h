@@ -9,19 +9,7 @@
 
 static char myblock[4096];
 
-/**
- * Metadata struct using bit fields.
- * This takes up exactly 2 bytes or 16 bits of space. 
- */
-typedef struct _metadata {
-    unsigned short blocksize : 12;
-    unsigned short inUse : 1;
-    unsigned short identifier : 3;
-} Metadata;
-
 void *mymalloc(int, char *, int);
 int myfree(void *, char *, int);
-Metadata *getMetadata(int);
-int setMetadata(int, int);
 
 #endif

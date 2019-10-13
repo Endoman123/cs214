@@ -4,12 +4,31 @@
 #include "mymalloc.h"
 
 /**
+ * Metadata struct using bit fields.
+ * This takes up exactly 2 bytes or 16 bits of space. 
+ */
+typedef struct _metadata {
+    unsigned short blocksize : 12;
+    unsigned short inUse : 1;
+    unsigned short identifier : 3;
+} Metadata;
+
+Metadata *getMetadata(int);
+int setMetadata(int, int);
+
+/**
  * Creates an allocation in the static block.
  * Returns a pointer if the allocation was successful,
  * NULL otherwise
  */
 void *mymalloc(int size, char *file, int nLine) {
     void *ret = NULL;
+    
+    // Make sure the user is not trying to do anything stupid
+    // I.E.: Don't let them allocate > 1 byte,
+    // don't let them allocate < 4096 bytes (including metadata)
+    if (size < 1) {
+    }
     
     // First-fit the allocation;
     // that is, we need to find the first qualified empty block in our
