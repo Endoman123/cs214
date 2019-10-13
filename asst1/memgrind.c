@@ -22,7 +22,8 @@ int main(int argc, char **argv) {
     }
 
     //B: malloc() 1 byte, store the pointer in an array - do this 150 times.
-    int j, k; for (i = 0; i < 100; i++) {
+    int j, k; 
+    for (i = 0; i < 100; i++) {
         gettimeofday(&start, NULL);
         for (j = 0; j < 3; j++) { //Repeat the 50 malloc 50 free cycle 3 times for 150.
             char buffer[50];
@@ -37,5 +38,27 @@ int main(int argc, char **argv) {
         workloadB[i] = (int) (end.tv_usec - start.tv_usec);
     }
 
+    //C: Randomly choose between a 1 byte malloc() or free()ing a 1 byte pointer
+    for (i = 0; i < 100; i++) {
+        gettimeofday(&start, NULL);
+
+
+        char buffer[50];   
+        int mallocOperations = 0;
+        j = 0;
+
+        //Generate a random number. If even -> malloc. If odd -> free.
+        //Stop after mallocing 50 times.
+        while (mallocOperations < 50) {
+            if (srand(time(0)) % 2 == 0) buffer[j++] = malloc(1);
+            else free(buffer[j--]);
+        }
+        for (k = 0; k <= j; k++) free(buffer[k]);
+
+        gettimeofday(&end, NULL);
+
+        workloadC[i] = (int) (end.tv_usec - start.tv_usec);
+
+    }
     return 0;
 }
