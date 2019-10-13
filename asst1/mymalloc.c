@@ -12,7 +12,8 @@ void *mymalloc(int size, char *file, int nLine) {
     void *ret = NULL;
     
     // Check remaining data
-    
+        
+
     return ret; 
 }
 
@@ -27,11 +28,8 @@ int myfree(void *pointer, char *file, int nLine) {
 }
 
 /**
- * Metadata struct using bit fields.
- * This takes up exactly 2 bytes or 16 bits of space. 
- */ 
-typedef struct _metadata_ {
-    unsigned short blocksize : 12;
-    unsigned short in_use : 1;
-    unsigned short identifier : 3;
-} Metadata;
+ * Gets the block of metadata from the char block
+ */
+Metadata getMetadata(int offset) {
+    return *((Metadata *)(myblock + offset)); 
+}
