@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
         
         workload[i] = (int) (end.tv_usec - start.tv_usec);
     }
-    printf("Average time: %f milliseconds\n\n", getAverage(workload, 100));
+    printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
 
 
     // B: malloc() 1 byte, store the pointer in an array - do this 150 times.
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
         gettimeofday(&end, NULL);
         workload[i] = (int) (end.tv_usec - start.tv_usec);
     }
-    printf("Average time: %f milliseconds\n\n", getAverage(workload, 100));
+    printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
 
     // C: Randomly choose between a 1 byte malloc() or free()ing a 1 byte pointer
     printf("Workload C: Random 1 byte malloc and free, up to 50 mallocs\n");
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
 
         workload[i] = (int) (end.tv_usec - start.tv_usec);
     }
-    printf("Average time: %f milliseconds\n\n", getAverage(workload, 100));
+    printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
     
     return 0;
 }
