@@ -9,7 +9,7 @@
 # vim swap
 !*.*
 *.o
-*.swp
+*.sw[po]
 
 # Track this
 !/**/
