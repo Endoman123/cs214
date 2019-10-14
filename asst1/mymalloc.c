@@ -163,7 +163,7 @@ int setMetadata(unsigned short offset, unsigned short newBlocksize) {
 }
 
 int printError(char* error, char* description, char* file, int nLine) {
-    fprintf(stderr, "%s:%n: %s: %d\n", file, nLine, error, description);
+    fprintf(stderr, "%s:%d: %s: %s\n", file, nLine, error, description);
 
     return 0;
 }
