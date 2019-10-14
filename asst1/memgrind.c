@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     printf("Average time: %f milliseconds\n\n", getAverage(workload, 100));
 
     // C: Randomly choose between a 1 byte malloc() or free()ing a 1 byte pointer
-    printf("Workload C: Random malloc and free\n");
+    printf("Workload C: Random 1 byte malloc and free, up to 50 mallocs\n");
     for (i = 0; i < 100; i++) {
         gettimeofday(&start, NULL);
 
