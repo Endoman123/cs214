@@ -31,7 +31,7 @@ void *mymalloc(unsigned short size, char *file, int nLine) {
      
     // Make sure the user is not trying to do anything stupid
     // I.E.: Don't let them allocate > 1 byte.
-    if (size > 0) {    
+    if (size > 0 && size <= BLOCK_SIZE - sizeof(Metadata)) {    
         int i = 0;
         Metadata *curMD = getMetadata(i);
         
