@@ -7,7 +7,7 @@ double getAverage(int*, int);
 
 int main(int argc, char **argv) {
     // Setup for measuring execution time. 
-    int workload[100];
+    int workload[100], i;
         
     struct timeval start, end;
 
@@ -15,11 +15,12 @@ int main(int argc, char **argv) {
     srand(time(0));
     
     // A: malloc() 1 byte and immediately free it - do this 150 times
-    printf("Workload A: malloc() 1 byte and free() x150\n");
-    int i; for (i = 0; i < 100; i++) {
+    printf("Workload A: malloc 1 byte and free x150\n");
+    for (i = 0; i < 100; i++) {
+        int j = 0;
+        
         gettimeofday(&start, NULL);
         
-        int j; 
         for (j = 0; j < 150; j++) 
             free(malloc(1));
         
@@ -31,10 +32,12 @@ int main(int argc, char **argv) {
 
 
     // B: malloc() 1 byte, store the pointer in an array - do this 150 times.
-    printf("Workload B: malloc() 1 byte and store pointer in array x150\n");
-    int j, k; 
+    printf("Workload B: malloc 1 byte and store pointer in array x150\n"); 
     for (i = 0; i < 100; i++) {
+        int j, k;
+
         gettimeofday(&start, NULL);
+        
         for (j = 0; j < 3; j++) { //Repeat the 50 malloc 50 free cycle 3 times for 150.
             char *buffer[50];
             for (k = 0; k < 50; k++)
@@ -43,7 +46,9 @@ int main(int argc, char **argv) {
             for (k = 0; k < 50; k++)
                 free(buffer[k]);
         }
+
         gettimeofday(&end, NULL);
+
         workload[i] = (int) (end.tv_usec - start.tv_usec);
     }
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
@@ -51,11 +56,10 @@ int main(int argc, char **argv) {
     // C: Randomly choose between a 1 byte malloc() or free()ing a 1 byte pointer
     printf("Workload C: Random 1 byte malloc and free, up to 50 mallocs\n");
     for (i = 0; i < 100; i++) {
-        gettimeofday(&start, NULL);
-
         char *buffer[50];   
-        int mallocOperations = 0;
-        j = -1;
+        int mallocOperations = 0, j = -1, k = 0;
+        
+        gettimeofday(&start, NULL);
 
         // Generate a random number. If even -> malloc. If odd -> free.
         // Stop after mallocing 50 times. Do not free when there are no pointers to.
@@ -77,9 +81,51 @@ int main(int argc, char **argv) {
     }
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
     
+    // D: Randomly choose between a randomly-sized malloc and a free 150 times.
+    printf("Workload D: Random malloc and free, up to 50 mallocs\n");
+    for (i = 0; i < 100; i++) {
+        char *buffer[50];   
+        int mallocOperations = 0, remainingMemory = 4094, j = -1, k = 0;
+        
+        gettimeofday(&start, NULL);
+
+        // Generate a random number. If even -> malloc. If odd -> free.
+        // Stop after mallocing 50 times. Do not free when there are no pointers to.
+        while (mallocOperations < 50) {
+            if (rand() % 2 == 0) {
+                int size = (int)(rand() / RAND_MAX * 64 + 1); 
+
+                // Assuming that our metadata is 2 bytes,
+                // check to make sure we have enough memory to allocate
+                // a pointer
+                if (remainingMemory - size - 2 > 0) {
+                    remainingMemory -= size - 2; 
+                    buffer[++j] = malloc(size);
+                    *buffer[j] = (char)size;
+                    mallocOperations++;
+                }
+            } else if (j > 0) {
+                remainingMemory += 2 + (int)buffer[j][0];
+                free(buffer[j--]);
+            }
+        }
+       
+        // Free everything after 50 malloc operations 
+        for (k = 0; k <= j; k++) 
+            free(buffer[k]);
+
+        gettimeofday(&end, NULL);
+
+        workload[i] = (int) (end.tv_usec - start.tv_usec);
+    }
+    printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
+
     return 0;
 }
 
+/**
+ * Gets the average of a set of values
+ */
 double getAverage(int *values, int nValues) {
     double ret = 0;
     int i = 0;
