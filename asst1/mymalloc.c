@@ -85,7 +85,7 @@ int myfree(void *pointer, char *file, int nLine) {
     // Make sure that the pointer is within the range of the block.
     // If it is not, it is safe to assume that it was not allocated by mymalloc().
     if (index >= 0 && index < BLOCK_SIZE) {
-        Metadata curMD = getMetadata(index);
+        Metadata *curMD = getMetadata(index);
 
         // Make sure that the block has metadata linked to it
         // and that the metadata is still marked "in use" 
@@ -115,14 +115,14 @@ int myfree(void *pointer, char *file, int nLine) {
  */
 int coaleseFreeBlocks() {
     int i = 0;
-    Metadata curMD = NULL;
+    Metadata *curMD = NULL;
 
     do {
         curMD = getMetadata(i);
 
         if (curMD->inUse == 0) {
             int j = i + sizeof(Metadata) + curMD->s_userdata;
-            Metadata tempMD = getMetadata(j);
+            Metadata *tempMD = getMetadata(j);
 
             while (!tempMD->inUse && j < BLOCK_SIZE) {
                 curMD->s_userdata += sizeof(Metadata) + tempMD->s_userdata;
