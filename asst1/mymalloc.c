@@ -18,6 +18,7 @@ typedef struct _metadata {
 
 Metadata *getMetadata(unsigned short);
 int setMetadata(unsigned short, unsigned short);
+int coaleseFreeBlocks();
 int printError(char *, char *, char *, int);
 
 /**
@@ -79,9 +80,61 @@ void *mymalloc(unsigned short size, char *file, int nLine) {
  * Returns 1 if successful, 0 otherwise.
  */
 int myfree(void *pointer, char *file, int nLine) {
-    // *(unsigned long *)pointer = setBit(*(unsigned long *)pointer, 0, 0);
+    unsigned short index = (unsigned short)((unsigned long)pointer - (unsigned long)myblock) - 2; 
 
+    // Make sure that the pointer is within the range of the block.
+    // If it is not, it is safe to assume that it was not allocated by mymalloc().
+    if (index >= 0 && index < BLOCK_SIZE) {
+        Metadata curMD = getMetadata(index);
+
+        // Make sure that the block has metadata linked to it
+        // and that the metadata is still marked "in use" 
+        if (curMD->identifier != META_ID) {
+            printError("Pointer error", "Pointer was not allocated by mymalloc()", file, nLine);
+            return 0;
+        } else if (curMD->inUse == 0) {
+            printError("Redundant free error", "Block was already declared not in use", file, nLine);
+            return 0;
+        }
+
+        // Mark this block as not in use
+        curMD->inUse = 0;
+
+        // Coalese all the unused blocks
+        coaleseFreeBlocks();
+
+        return 1; 
+    }
+
+    printError("Pointer error", "Pointer was not allocated by mymalloc()", file, nLine);
     return 0;
+}
+
+/**
+ * Merges together contiguous free blocks
+ */
+int coaleseFreeBlocks() {
+    int i = 0;
+    Metadata curMD = NULL;
+
+    do {
+        curMD = getMetadata(i);
+
+        if (curMD->inUse == 0) {
+            int j = i + sizeof(Metadata) + curMD->s_userdata;
+            Metadata tempMD = getMetadata(j);
+
+            while (!tempMD->inUse && j < BLOCK_SIZE) {
+                curMD->s_userdata += sizeof(Metadata) + tempMD->s_userdata;
+
+                j += tempMD->s_userdata + sizeof(Metadata);
+            }
+        }
+
+        i += sizeof(Metadata) + curMD->s_userdata;
+    } while (i < BLOCK_SIZE);
+
+    return 0; 
 }
 
 /**
