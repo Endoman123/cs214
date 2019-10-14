@@ -47,8 +47,10 @@ void *mymalloc(unsigned short size, char *file, int nLine) {
         // memory block
         do {
             curMD = getMetadata(i);
-            
-            if (!curMD->inUse) {
+           
+            // If the current block fits the allocation requirement,
+            // put it in. 
+            if (!curMD->inUse && curMD->s_userdata >= size) {
                 ret = &myblock[i + sizeof(Metadata)];
 
                 curMD->inUse = 1;
