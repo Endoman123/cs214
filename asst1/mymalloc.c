@@ -122,11 +122,15 @@ int coaleseFreeBlocks() {
 
         if (curMD->inUse == 0) {
             int j = i + sizeof(Metadata) + curMD->s_userdata;
-            Metadata *tempMD = getMetadata(j);
+            Metadata *tempMD = NULL;
 
-            while (!tempMD->inUse && j < BLOCK_SIZE) {
+            while (j < BLOCK_SIZE) {
+                tempMD = getMetadata(j);
+                
+                if (tempMD->inUse)
+                    break;
+                
                 curMD->s_userdata += sizeof(Metadata) + tempMD->s_userdata;
-
                 j += tempMD->s_userdata + sizeof(Metadata);
             }
         }
