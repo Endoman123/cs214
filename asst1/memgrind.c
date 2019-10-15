@@ -166,12 +166,14 @@ int main(int argc, char **argv) {
                 }
             }
         }
-      
+
         // Free everything afterwards 
         int k = 0;
         for (k = 0; k <= j; k++) { 
-            if (buffer[k] != NULL)
+            if (buffer[k] != NULL) {
                 free(buffer[k]);
+                buffer[k] = NULL;
+            }
         }
 
         gettimeofday(&end, NULL);
