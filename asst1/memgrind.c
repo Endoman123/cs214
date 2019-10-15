@@ -151,6 +151,7 @@ int main(int argc, char **argv) {
                     remainingMemory += 2 + *buffer[k]; 
                     free(buffer[k]);
                     buffer[k] = NULL;
+                    numOps++;
                 }
             }
 
@@ -161,6 +162,7 @@ int main(int argc, char **argv) {
                     buffer[k] = malloc(size);
                     *buffer[k] = size;
                     remainingMemory -= 2 + size; 
+                    numOps++;
                 }
             }
         }
