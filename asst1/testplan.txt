@@ -1,0 +1,14 @@
+Workload E:
+
+Workload E is a workload to test the ability of mymalloc and myfree to coalese free blocks and use these coalesed blocks for reallocation.
+By removing a block from the middle, coalesing blocks with in use blocks to the left and right is tested.
+After freeing these blocks, the memory is reused for a single memory allocation that is the sum of the freed blocks.
+This tests to see that the freed blocks were coalesed properly and can be reallocated as a single block. 
+
+
+Workload F:
+
+Workload F is a workload to stress-test a more accurate simulation of the way mymalloc and myfree are going to be used by the user.
+It is often that the user will request a large block of memory at the beginning of their program for their data structures and other setup.
+Then, throughout the program, free() and malloc() could be called in any number of ways depending on the program. This is simulated in the workload as random free()s and random reallocations.
+Then, at the end of both the program and workload, all malloc()'d pointers are freed.  
