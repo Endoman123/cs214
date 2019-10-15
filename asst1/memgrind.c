@@ -121,11 +121,11 @@ int main(int argc, char **argv) {
     }
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
 
-    // E: Synthetically fragment memory 
-    printf("Workload E: Synthetic fragmentation\n");
+    // E: Populate static block, remove middle, attempt to fill completely 
+    printf("Workload E: Populate static block, remove middle, attempt to fill completely\n");
     for (i = 0; i < 100; i++) {
         unsigned short *buffer[16]; 
-        int remainingMemory = 0, j = 0;
+        int j = 0;
         
         gettimeofday(&start, NULL);
 
@@ -134,32 +134,14 @@ int main(int argc, char **argv) {
             buffer[j] = malloc(254);
         }
 
-        // Step 2: Fragment blocks
-        for (j = 0; j < 16; j++) {
-            if (rand() % 2 == 0) {
-                free(buffer[j]);
-                buffer[j] = NULL;
-                remainingMemory += 256;
-            }
+        // Step 2: Remove plot in the middle
+        for (j = 1; j < 15; j++) {
+            free(buffer[j]);
+            buffer[j] = NULL;
         }
 
-        // Step 3: Attempt random reallocation
-        for (j = 0; j < 16 && remainingMemory > 0; j++) {
-            if (buffer[j] == NULL) {
-                unsigned short size = (unsigned short)getRandomNumber(1, 4) * 128;
-
-                if (remainingMemory >= 128)
-                    size = 128;
-
-                size -= 2;
-                buffer[j] = malloc(size);
-
-                if (buffer[j] != NULL) {
-                    *buffer[j] = size;
-                    remainingMemory -= 2 + size; 
-                }
-            }
-        }
+        // Step 3: Attempt to allocate the middle with 1 large block
+        buffer[1] = malloc(3582);
 
         // Free everything afterwards 
         int k = 0;
