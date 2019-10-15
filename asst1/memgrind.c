@@ -4,6 +4,7 @@
 #include "mymalloc.h"
 
 double getAverage(int*, int);
+int getRandomNumber(int, int);
 
 int main(int argc, char **argv) {
     // Setup for measuring execution time. 
@@ -93,7 +94,7 @@ int main(int argc, char **argv) {
         // Stop after mallocing 50 times. Do not free when there are no pointers to.
         while (mallocOperations < 50) {
             if (rand() % 2 == 0) {
-                int size = (int)(rand() / RAND_MAX * 64 + 1); 
+                unsigned short size = (unsigned short)getRandomNumber(1, 64); 
 
                 // Assuming that our metadata is 2 bytes,
                 // check to make sure we have enough memory to allocate
@@ -120,33 +121,49 @@ int main(int argc, char **argv) {
     }
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
 
-    // E: Randomly populate an array, randomly deallocate, repeat
-    printf("Workload E: Randomly populate an array, randomly deallocate, repeat\n");
+    // E: Synthetically fragment memory 
+    printf("Workload E: Synthetic fragmentation\n");
     for (i = 0; i < 100; i++) {
-        unsigned short *buffer[1024]; // Need to have enough room for at least 1024 4-byte allocations   
-        int remainingMemory = 4096, j = 0;
+        unsigned short *buffer[16]; 
+        int remainingMemory = 0, j = 0;
         
         gettimeofday(&start, NULL);
 
-        // Step 1: Populate the buffer with 2-512 byte blocks
-        while (remainingMemory > 0) {
-            unsigned short size = (unsigned short)(rand() / RAND_MAX * 511 + 2); // Start with the a random allocation
-            
-            // If the remaining memory (minus a block for metadata)
-            // is less than the range of memory we are randomly allocating,
-            // go for the remaining space
-            if (remainingMemory - 4 <= 512)
-                size = remainingMemory - 2;
+        // Step 1: Create blocks
+        for (j = 0; j < 16; j++) {
+            buffer[j] = malloc(254);
+        }
 
-            remainingMemory -= 2 + size;
-            buffer[j] = malloc(size);
-            *buffer[j] = size;
-            j++;
-        } 
+        // Step 2: Fragment blocks
+        for (j = 0; j < 16; j++) {
+            if (rand() % 2 == 0) {
+                free(buffer[j]);
+                buffer[j] = NULL;
+                remainingMemory += 256;
+            }
+        }
+
+        // Step 3: Attempt random reallocation
+        for (j = 0; j < 16 && remainingMemory > 0; j++) {
+            if (buffer[j] == NULL) {
+                unsigned short size = (unsigned short)getRandomNumber(1, 4) * 128;
+
+                if (remainingMemory >= 128)
+                    size = 128;
+
+                size -= 2;
+                buffer[j] = malloc(size);
+
+                if (buffer[j] != NULL) {
+                    *buffer[j] = size;
+                    remainingMemory -= 2 + size; 
+                }
+            }
+        }
 
         // Free everything afterwards 
         int k = 0;
-        for (k = 0; k <= j; k++) { 
+        for (k = 0; k < 16; k++) { 
             if (buffer[k] != NULL)
                 free(buffer[k]);
         }
@@ -155,6 +172,7 @@ int main(int argc, char **argv) {
 
         workload[i] = (int) (end.tv_usec - start.tv_usec);
     }
+    
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
 
     return 0;
@@ -172,4 +190,11 @@ double getAverage(int *values, int nValues) {
     }
 
     return ret / nValues;
+}
+
+/**
+ * Generates a random number between min and max
+ */
+int getRandomNumber(int min, int max) {
+    return (int)((float)rand() / RAND_MAX * (max - min + 1) + min);
 }
