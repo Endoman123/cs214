@@ -8,7 +8,7 @@ int getRandomNumber(int, int);
 
 int main(int argc, char **argv) {
     // Setup for measuring execution time. 
-    int workload[100], i;
+    int i, j, k, workload[100];
         
     struct timeval start, end;
 
@@ -17,9 +17,7 @@ int main(int argc, char **argv) {
    
     // A: malloc() 1 byte and immediately free it - do this 150 times
     printf("Workload A: malloc 1 byte and free x150\n");
-    for (i = 0; i < 100; i++) {
-        int j = 0;
-        
+    for (i = 0; i < 100; i++) {        
         gettimeofday(&start, NULL);
         
         for (j = 0; j < 150; j++) 
@@ -35,8 +33,6 @@ int main(int argc, char **argv) {
     // B: malloc() 1 byte, store the pointer in an array - do this 150 times.
     printf("Workload B: malloc 1 byte and store pointer in array x150\n"); 
     for (i = 0; i < 100; i++) {
-        int j, k;
-
         gettimeofday(&start, NULL);
         
         for (j = 0; j < 3; j++) { //Repeat the 50 malloc 50 free cycle 3 times for 150.
@@ -94,7 +90,7 @@ int main(int argc, char **argv) {
         // Stop after mallocing 50 times. Do not free when there are no pointers to.
         while (mallocOperations < 50) {
             if (rand() % 2 == 0) {
-                unsigned short size = (unsigned short)getRandomNumber(1, 64); 
+                unsigned short size = (unsigned short) getRandomNumber(1, 64); 
 
                 // Assuming that our metadata is 2 bytes,
                 // check to make sure we have enough memory to allocate
@@ -125,8 +121,6 @@ int main(int argc, char **argv) {
     printf("Workload E: Populate static block, remove middle, attempt to fill completely\n");
     for (i = 0; i < 100; i++) {
         unsigned short *buffer[16]; 
-        int j = 0;
-        
         gettimeofday(&start, NULL);
 
         // Step 1: Create blocks
@@ -144,7 +138,6 @@ int main(int argc, char **argv) {
         buffer[1] = malloc(3582);
 
         // Free everything afterwards 
-        int k = 0;
         for (k = 0; k < 16; k++) { 
             if (buffer[k] != NULL)
                 free(buffer[k]);
@@ -154,8 +147,8 @@ int main(int argc, char **argv) {
 
         workload[i] = (int) (end.tv_usec - start.tv_usec);
     }
-    
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
+
 
     return 0;
 }
