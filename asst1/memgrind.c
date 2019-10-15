@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 
     // Begin by seeding the random generator
     srand(time(0));
-    
+   
     // A: malloc() 1 byte and immediately free it - do this 150 times
     printf("Workload A: malloc 1 byte and free x150\n");
     for (i = 0; i < 100; i++) {
@@ -99,13 +99,13 @@ int main(int argc, char **argv) {
                 // check to make sure we have enough memory to allocate
                 // a pointer
                 if (remainingMemory - size - 2 > 0) {
-                    remainingMemory -= size - 2; 
+                    remainingMemory -= size + 2; 
                     buffer[++j] = malloc(size);
                     *buffer[j] = (char)size;
                     mallocOperations++;
                 }
             } else if (j > 0) {
-                remainingMemory += 2 + (int)buffer[j][0];
+                remainingMemory += 2 + (int)*buffer[j];
                 free(buffer[j--]);
             }
         }
@@ -113,6 +113,64 @@ int main(int argc, char **argv) {
         // Free everything after 50 malloc operations 
         for (k = 0; k <= j; k++) 
             free(buffer[k]);
+
+        gettimeofday(&end, NULL);
+
+        workload[i] = (int) (end.tv_usec - start.tv_usec);
+    }
+    printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
+
+    // E: Randomly populate an array, randomly deallocate, repeat
+    printf("Workload E: Randomly populate an array, randomly deallocate, repeat\n");
+    for (i = 0; i < 100; i++) {
+        unsigned short *buffer[50];   
+        int remainingMemory = 4094, j = 0;
+        
+        gettimeofday(&start, NULL);
+
+        // Start with populating between 1-512 bytes
+        while (remainingMemory > 0) {
+            unsigned short size = remainingMemory - 2;
+
+            if (remainingMemory < 514) // If it is more than the max range, go random
+                size = (unsigned short)(rand() / RAND_MAX * 512 + 1);
+
+            buffer[j] = malloc(size);
+            *buffer[j++] = size;
+            remainingMemory -= 2 + size;
+        }
+
+        // Randomly deallocate n/2 times, allocate n/4, until n = 0.
+        int n = j; 
+        while (n > 0) {
+            n /= 2;
+            int k = 0, numOps = 0;
+            
+            for (k = 0; k < j && numOps > n; k++) {
+                if (buffer[k] != NULL && rand() % 2 == 0) {
+                    remainingMemory += 2 + *buffer[k]; 
+                    free(buffer[k]);
+                    buffer[k] = NULL;
+                }
+            }
+
+            n /= 2;
+            for (k = 0; k < j && numOps > n && remainingMemory > 0; k++) {
+                if (buffer[k] == NULL && rand() % 2 == 0) {
+                    unsigned short size = (unsigned short)(rand() / RAND_MAX * 512 + 1);
+                    buffer[k] = malloc(size);
+                    *buffer[k] = size;
+                    remainingMemory -= 2 + size; 
+                }
+            }
+        }
+      
+        // Free everything afterwards 
+        int k = 0;
+        for (k = 0; k <= j; k++) { 
+            if (buffer[k] != NULL)
+                free(buffer[k]);
+        }
 
         gettimeofday(&end, NULL);
 

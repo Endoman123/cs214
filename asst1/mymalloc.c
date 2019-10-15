@@ -72,7 +72,11 @@ void *mymalloc(unsigned short size, char *file, int nLine) {
             } else
                 i += sizeof(Metadata) + curMD->s_userdata;
         } while (ret == NULL && i < BLOCK_SIZE - sizeof(Metadata)); 
-    }
+   
+        if (ret == NULL) 
+            printError("Saturation of dynamic memory", "Not enough space to allocate", file, nLine);
+    } else
+        printError("Invalid argument", "Size out of range of static block size", file, nLine);
 
     return ret; 
 }
@@ -84,9 +88,11 @@ void *mymalloc(unsigned short size, char *file, int nLine) {
 int myfree(void *pointer, char *file, int nLine) {
     unsigned short index = (unsigned short)((unsigned long)pointer - (unsigned long)myblock) - 2; 
 
-    // Make sure that the pointer is within the range of the block.
+    // Make sure that the pointer not null and that it is within the range of the block.
     // If it is not, it is safe to assume that it was not allocated by mymalloc().
-    if (index >= 0 && index < BLOCK_SIZE) {
+    if (pointer == NULL) {
+        printError("Pointer error", "Argument 0 is not a pointer", file, nLine);
+    } if (index >= 0 && index < BLOCK_SIZE) {
         Metadata *curMD = getMetadata(index);
 
         // Make sure that the block has metadata linked to it
@@ -120,8 +126,11 @@ int coaleseFreeBlocks() {
     Metadata *curMD = NULL;
 
     do {
+        // Get the current metadata for the allocation
         curMD = getMetadata(i);
 
+        // If it's not in use, 
+        // we need to start checking ahead until we find a block in use
         if (curMD->inUse == 0) {
             int j = i + sizeof(Metadata) + curMD->s_userdata;
             Metadata *tempMD = NULL;
@@ -137,6 +146,7 @@ int coaleseFreeBlocks() {
             }
         }
 
+        // Increment by the blocksize (including meta)
         i += sizeof(Metadata) + curMD->s_userdata;
     } while (i < BLOCK_SIZE);
 
