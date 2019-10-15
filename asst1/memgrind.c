@@ -149,6 +149,60 @@ int main(int argc, char **argv) {
     }
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
 
+    // F: Randomly allocate, randomly free, and randomly reallocate.
+    printf("Workload F: Random allocations, frees, and reallocations\n");
+    const short ALLOCATION_THRESHOLD = 1024, MAX_ALLOCATION = 128, METADATA_SIZE;
+    for (i = 0; i < 100; i++) {
+        gettimeofday(&start, NULL);
+        int remainingMemory = 4096; j = 0;
+        unsigned short size, *buffer[128];
+
+        //Allocate around only about 3/4ths of the block
+        //so there is room for variance without segfaulting.  
+        while (remainingMemory > ALLOCATION_THRESHOLD) {
+            //Populate the buffer with random allocations
+            size = getRandomNumber(1, MAX_ALLOCATION) * sizeof(unsigned short); //Get a random amount of memory for shorts.
+            buffer[j] = malloc(size);
+            *buffer[j++] = size;
+            remainingMemory = remainingMemory - (size + METADATA_SIZE); 
+        }
+        
+        // Repeatedly and randomly free and reallocate until half of the block is available.
+        // 50% chance to free a given pointer
+        // 25% chance to reallocate a pointer. 
+        while (remainingMemory < 2048) {
+            for (k = 0; k < j; k++) {
+                if (rand() % 2 == 0) { 
+                    //50% chance to free the pointer.
+                    if (buffer[k] != NULL) {
+                        remainingMemory += *buffer[k] + METADATA_SIZE;
+                        free(buffer[k]);
+                        buffer[k] = NULL;
+                    }
+                    if (rand() % 2 == 0) { 
+                        //50% to reallocate from the pointer that was just freed. 
+                        //Smaller range to prevent segfaults due to block splitting.
+                        size = getRandomNumber(1, MAX_ALLOCATION / 2) * sizeof(unsigned short);
+                        buffer[k] = malloc(size);
+                        *buffer[k] = size; 
+                        remainingMemory -= size + METADATA_SIZE; 
+                    }
+                }
+            } 
+        }
+
+        // Free all remaining pointers.  
+        for (k = 0; k < j; k++) { 
+            if (buffer[k] != NULL) {
+                free(buffer[k]);
+                buffer[k] = NULL;
+            }
+        }
+
+        gettimeofday(&end, NULL);
+        workload[i] = (int) (end.tv_usec - start.tv_usec);
+    }
+    printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
 
     return 0;
 }
