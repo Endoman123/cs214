@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -19,7 +20,7 @@ typedef struct _metadata {
 Metadata *getMetadata(unsigned short);
 int setMetadata(unsigned short, unsigned short);
 int coaleseFreeBlocks();
-int printError(char *, char *, char *, int);
+int printError(char *, int, char *, char *, ...);
 
 /**
  * Creates an allocation in the static block.
@@ -74,9 +75,9 @@ void *mymalloc(unsigned short size, char *file, int nLine) {
         } while (ret == NULL && i < BLOCK_SIZE - sizeof(Metadata)); 
    
         if (ret == NULL) 
-            printError("Saturation of dynamic memory", "Not enough space to allocate", file, nLine);
+            printError(file, nLine, "Saturation of dynamic memory", "Not enough space to allocate %d bytes", size);
     } else
-        printError("Invalid argument", "Size out of range of static block size", file, nLine);
+        printError(file, nLine, "Invalid argument", "Size is not within range of 0 < x < 4096");
 
     return ret; 
 }
@@ -91,17 +92,17 @@ int myfree(void *pointer, char *file, int nLine) {
     // Make sure that the pointer not null and that it is within the range of the block.
     // If it is not, it is safe to assume that it was not allocated by mymalloc().
     if (pointer == NULL) {
-        printError("Pointer error", "Argument 0 is not a pointer", file, nLine);
+        printError(file, nLine, "Pointer error", "Argument 0 is not a pointer");
     } if (index >= 0 && index < BLOCK_SIZE) {
         Metadata *curMD = getMetadata(index);
 
         // Make sure that the block has metadata linked to it
         // and that the metadata is still marked "in use" 
         if (curMD->identifier != META_ID) {
-            printError("Pointer error", "Pointer was not allocated by mymalloc()", file, nLine);
+            printError(file, nLine, "Pointer error", "Pointer was not allocated by mymalloc()");
             return 0;
         } else if (curMD->inUse == 0) {
-            printError("Redundant free error", "Block was already declared not in use", file, nLine);
+            printError(file, nLine, "Redundant free error", "Block was already declared not in use");
             return 0;
         }
 
@@ -114,7 +115,7 @@ int myfree(void *pointer, char *file, int nLine) {
         return 1; 
     }
 
-    printError("Pointer error", "Pointer was not allocated by mymalloc()", file, nLine);
+    printError(file, nLine, "Pointer error", "Pointer was not allocated by mymalloc()");
     return 0;
 }
 
@@ -174,7 +175,15 @@ int setMetadata(unsigned short offset, unsigned short newBlocksize) {
     return 0; 
 }
 
-int printError(char* error, char* description, char* file, int nLine) {
+/**
+ * Prints an error to standard error output
+ */
+int printError(char* file, int nLine, char* error, char* descFormat, ...) { 
+    char description[999];
+    va_list argp;
+    va_start(argp, descFormat);
+
+    vsnprintf(description, 999 * sizeof(char), descFormat, argp);
     fprintf(stderr, "%s:%d: %s: %s\n", file, nLine, error, description);
 
     return 0;
