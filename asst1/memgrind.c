@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
         
         gettimeofday(&start, NULL);
 
-        // Start with populating between 1-512 bytes
+        // Start with populating between 1-64 bytes
         while (remainingMemory > 0) {
             unsigned short size = remainingMemory - 2;
 
@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
             n /= 2;
             for (k = 0; k < j && numOps > n && remainingMemory > 0; k++) {
                 if (buffer[k] == NULL && rand() % 2 == 0) {
-                    unsigned short size = (unsigned short)(rand() / RAND_MAX * 512 + 1);
+                    unsigned short size = (unsigned short)(rand() / RAND_MAX * 64 + 1);
                     buffer[k] = malloc(size);
                     *buffer[k] = size;
                     remainingMemory -= 2 + size; 
