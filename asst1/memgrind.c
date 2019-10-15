@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
         while (remainingMemory > 0) {
             unsigned short size = remainingMemory - 2;
 
-            if (remainingMemory < 514) // If it is more than the max range, go random
+            if (remainingMemory > 514) // If it is more than the max range, go random
                 size = (unsigned short)(rand() / RAND_MAX * 512 + 1);
 
             buffer[j] = malloc(size);
