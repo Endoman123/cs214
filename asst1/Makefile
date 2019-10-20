@@ -1,4 +1,4 @@
-all: memgrind
+all: test
 
 memgrind: clean mymalloc.o memgrind.c 
 	gcc -lm -g memgrind.c mymalloc.o -o memgrind
