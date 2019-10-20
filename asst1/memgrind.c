@@ -144,29 +144,33 @@ int main(int argc, char **argv) {
 
     // E: Allocate all available memory into blocks, free randomly sized section, attempt to fill hole completely
     printf("Workload E: Allocate all available memory into blocks, free randomly sized section, attempt to fill hole completely\n");
+    
+    //Workload constants
+    const unsigned short NUM_BLOCKS_E = 16, SIZE_PER_BLOCK_E = BLOCK_SIZE / NUM_BLOCKS_E;
+
     for (i = 0; i < WORKLOAD_ITERATIONS; i++) {
-        unsigned short *buffer[17]; 
+        unsigned short *buffer[NUM_BLOCKS_E + 1]; 
         gettimeofday(&start, NULL);
 
         // Step 1: Create blocks
-        for (j = 0; j < 16; j++) {
-            buffer[j] = malloc(254);
+        for (j = 0; j < NUM_BLOCKS_E; j++) {
+            buffer[j] = malloc(SIZE_PER_BLOCK_E - METADATA_SIZE);
         }
 
-        // Step 2: Remove plot in the middle
-        int plotstart = getRandomNumber(0, 7);
-        int plotend = getRandomNumber(8, 16);
+        // Step 2: Generate randomly sized block to remove. 
+        int plotstart = getRandomNumber(0, NUM_BLOCKS_E / 2 - 1);
+        int plotend = getRandomNumber(NUM_BLOCKS_E / 2 , NUM_BLOCKS_E);
 
         for (j = plotstart; j < plotend; j++) {
             free(buffer[j]);
             buffer[j] = NULL;
         }
 
-        // Step 3: Attempt to allocate the middle with 1 large block
-        buffer[16] = malloc((plotend - plotstart) * 256 - 2);
+        // Step 3: Attempt to reallocate the removed blocks with a single large block.
+        buffer[NUM_BLOCKS_E] = malloc((plotend - plotstart) * (SIZE_PER_BLOCK_E) - METADATA_SIZE);
 
         // Free everything afterwards 
-        for (k = 0; k < 17; k++) { 
+        for (k = 0; k <= NUM_BLOCKS_E; k++) { 
             if (buffer[k] != NULL)
                 free(buffer[k]);
         }
