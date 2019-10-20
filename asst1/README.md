@@ -42,4 +42,18 @@ The new implementations were put under 6 different workloads:
   <li>Break memory into blocks, free random chunk of blocks, reallocate with one block</li>
   <li>Randomly allocate, randomly free, randomly reallocate</li>
 </ol>
-Each workload was repeated 100 times. 
+
+
+
+Each workload was repeated 100 times. Averages (in microseconds) are posted below:
+
+| Workload | System Impl | ++malloc() |
+|----------|-------------|------------|
+| A        | 27.48       | 12.33      |
+| B        | 51.22       | 15.79      |
+| C        | 5.44        | 5.66       |
+| D        | 6.31        | 3.36       |
+| E        | 0.54        | 0.54       |
+| F        | 8.40        | 2.74       |
+
+TO-DO: Analyze
