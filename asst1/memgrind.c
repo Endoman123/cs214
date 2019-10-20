@@ -146,6 +146,7 @@ int main(int argc, char **argv) {
 
     for (i = 0; i < WORKLOAD_ITERATIONS; i++) {
         unsigned short *buffer[NUM_BLOCKS_E + 1]; 
+
         gettimeofday(&start, NULL);
 
         // Step 1: Create blocks
