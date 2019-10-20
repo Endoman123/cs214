@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
     // E: Populate static block, remove middle, attempt to fill completely 
     printf("Workload E: Populate static block, remove middle, attempt to fill completely\n");
     for (i = 0; i < 100; i++) {
-        unsigned short *buffer[16]; 
+        unsigned short *buffer[17]; 
         gettimeofday(&start, NULL);
 
         // Step 1: Create blocks
@@ -129,16 +129,19 @@ int main(int argc, char **argv) {
         }
 
         // Step 2: Remove plot in the middle
-        for (j = 1; j < 15; j++) {
+        int plotstart = getRandomNumber(0, 7);
+        int plotend = getRandomNumber(8, 16);
+
+        for (j = plotstart; j < plotend; j++) {
             free(buffer[j]);
             buffer[j] = NULL;
         }
 
         // Step 3: Attempt to allocate the middle with 1 large block
-        buffer[1] = malloc(3582);
+        buffer[16] = malloc((plotend - plotstart) * 256 - 2);
 
         // Free everything afterwards 
-        for (k = 0; k < 16; k++) { 
+        for (k = 0; k < 17; k++) { 
             if (buffer[k] != NULL)
                 free(buffer[k]);
         }
