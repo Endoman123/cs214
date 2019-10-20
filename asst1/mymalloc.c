@@ -19,7 +19,7 @@ typedef struct _metadata {
 
 Metadata *getMetadata(unsigned short);
 int setMetadata(unsigned short, unsigned short);
-int coaleseAround(int);
+int coaleseFreeBlocks();
 int printError(char *, int, char *, char *, ...);
 
 /**
@@ -109,8 +109,8 @@ int myfree(void *pointer, char *file, int nLine) {
         // Mark this block as not in use
         curMD->inUse = 0;
 
-        // Coalese all the unused blocks around this block
-        coaleseAround(index);
+        // Coalese all the unused blocks
+        coaleseFreeBlocks();
 
         return 1; 
     }
@@ -120,42 +120,36 @@ int myfree(void *pointer, char *file, int nLine) {
 }
 
 /**
- * Merges together contiguous free blocks around the specified block.
- * Assumes that the block to coalese around is free itself.
+ * Merges together contiguous free blocks
  */
-int coaleseAround(int index) {
+int coaleseFreeBlocks() {
     int i = 0;
-    Metadata *curMD = NULL, *nextMD = NULL;
+    Metadata *curMD = NULL;
 
-    // Find the block to coalese around,
-    // keeping track of the block prior
     do {
+        // Get the current metadata for the allocation
         curMD = getMetadata(i);
-        
-        i += sizeof(Metadata) + curMD->s_userdata;  
-    } while (i < BLOCK_SIZE && i != index);
 
-    // If in use, set the back end to the one that we need
-    // to coalese around, otherwise merge the one behind
-    // with the center and move to the next one.
-    if (curMD->inUse)
-        curMD = getMetadata(i);
-    else {
-        nextMD = getMetadata(i);
+        // If it's not in use, 
+        // we need to start checking ahead until we find a block in use
+        if (curMD->inUse == 0) {
+            int j = i + sizeof(Metadata) + curMD->s_userdata;
+            Metadata *tempMD = NULL;
 
-        curMD->s_userdata += sizeof(Metadata) + nextMD->s_userdata;
-    }
+            while (j < BLOCK_SIZE) {
+                tempMD = getMetadata(j);
+                
+                if (tempMD->inUse)
+                    break;
+                
+                curMD->s_userdata += sizeof(Metadata) + tempMD->s_userdata;
+                j += tempMD->s_userdata + sizeof(Metadata);
+            }
+        }
 
-    // Increment by the size of curMD
-    i += sizeof(Metadata) + curMD->s_userdata;
-
-    // Check to see if the next block is a valid block to merge into curMD
-    if (i < BLOCK_SIZE - 1 - sizeof(Metadata)) {
-        nextMD = getMetadata(i);
-
-        if (!nextMD->inUse)
-            curMD->s_userdata += sizeof(Metadata) + nextMD->s_userdata;
-    }
+        // Increment by the blocksize (including meta)
+        i += sizeof(Metadata) + curMD->s_userdata;
+    } while (i < BLOCK_SIZE);
 
     return 0; 
 }
