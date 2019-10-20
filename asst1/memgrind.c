@@ -6,11 +6,8 @@
 double getAverage(int*, int);
 int getRandomNumber(int, int);
 
-typedef enum boolean {true = 1, false = 0} boolean;
-boolean flipCoin();
-
 int main(int argc, char **argv) {
-    //Constants
+    // Constants
     const unsigned int WORKLOAD_ITERATIONS = 100;
     const unsigned short BLOCK_SIZE = 4096, METADATA_SIZE = 2;  
 
@@ -27,9 +24,8 @@ int main(int argc, char **argv) {
     // A: malloc() 1 byte and immediately free it - do this 150 times
     printf("Workload A: malloc 1 byte and free x150\n");
 
-    //Workload Constants
-    const unsigned short CYCLE_SIZE_A = 150;
-    const unsigned short MALLOC_SIZE_A = 1;
+    // Workload Constants
+    const unsigned short CYCLE_SIZE_A = 150, MALLOC_SIZE_A = 1; // Run 150 cycles of mallocing and freeing 1 byte per workload.
 
     for (i = 0; i < WORKLOAD_ITERATIONS; i++) {        
         gettimeofday(&start, NULL);
@@ -47,13 +43,13 @@ int main(int argc, char **argv) {
     // B: malloc() 1 byte, store the pointer in an array - do this 150 times.
     printf("Workload B: malloc 1 byte and store pointer in array x150\n"); 
 
-    //Workload constants
-    const unsigned short CYCLE_SIZE_B = 50, NUM_CYCLES_B = 3, MALLOC_SIZE_B = 1;
+    // Workload constants
+    const unsigned short CYCLE_SIZE_B = 50, NUM_CYCLES_B = 3, MALLOC_SIZE_B = 1; // Run 3 cycles of 50 frees and 50 mallocs with mallocs of 1 byte per workload.
 
     for (i = 0; i < WORKLOAD_ITERATIONS; i++) {
         gettimeofday(&start, NULL);
         
-        for (j = 0; j < NUM_CYCLES_B; j++) { //Repeat the 50 malloc 50 free cycle 3 times for 150.
+        for (j = 0; j < NUM_CYCLES_B; j++) { // Repeat the 50 malloc 50 free cycle 3 times for 150.
             char *buffer[CYCLE_SIZE_B];
             for (k = 0; k < CYCLE_SIZE_B; k++)
                 buffer[k] = malloc(MALLOC_SIZE_B);
@@ -71,19 +67,20 @@ int main(int argc, char **argv) {
     // C: Randomly choose between a 1 byte malloc() or free()ing a 1 byte pointer
     printf("Workload C: Random 1 byte malloc and free, up to 50 mallocs\n");
 
-    //Workload Constants
+    // Workload Constants
     const unsigned short MAX_MALLOCS_C = 50; //Maximum of 50 mallocs per workload.
     
     for (i = 0; i < WORKLOAD_ITERATIONS; i++) {
         char *buffer[MAX_MALLOCS_C];   
-        int mallocOperations = 0, j = -1, k = 0;
+        int mallocOperations = 0;
+        j = -1, k = 0;
         
         gettimeofday(&start, NULL);
 
         // 50/50 chance to malloc or free.
         // Stop after mallocing 50 times. Do not free when there are no pointers to.
         while (mallocOperations < MAX_MALLOCS_C) {
-            if (flipCoin()) { 
+            if (getRandomNumber(0, 1)) { 
                 buffer[++j] = malloc(1);
                 mallocOperations++;
             } else if (j > 0)
@@ -103,7 +100,7 @@ int main(int argc, char **argv) {
     // D: Randomly choose between a randomly-sized malloc and a free 150 times.
     printf("Workload D: Random malloc and free, up to 50 mallocs\n");
 
-    //Workload Constants
+    // Workload Constants
     const unsigned short MAX_MALLOCS_D = 50, MIN_ALLOC = 1, MAX_ALLOC = 64;
 
     for (i = 0; i < WORKLOAD_ITERATIONS; i++) {
@@ -115,11 +112,10 @@ int main(int argc, char **argv) {
         // 50/50 chance to malloc or free.
         // Stop after mallocing 50 times. Do not free when there are no pointers to.
         while (mallocOperations < MAX_MALLOCS_D) {
-            if (flipCoin()) {
+            if (getRandomNumber(0, 1)) {
                 unsigned short size = (unsigned short) getRandomNumber(MIN_ALLOC, MAX_ALLOC); 
 
-                // Check to make sure we have enough memory to allocate
-                // a pointer
+                // Check to make sure we have enough memory to allocate a pointer
                 if (remainingMemory - size - METADATA_SIZE > 0) {
                     remainingMemory -= size + METADATA_SIZE; 
                     buffer[++j] = malloc(size);
@@ -145,7 +141,7 @@ int main(int argc, char **argv) {
     // E: Allocate all available memory into blocks, free randomly sized section, attempt to fill hole completely
     printf("Workload E: Allocate all available memory into blocks, free randomly sized section, attempt to fill hole completely\n");
     
-    //Workload constants
+    // Workload constants
     const unsigned short NUM_BLOCKS_E = 16, SIZE_PER_BLOCK_E = BLOCK_SIZE / NUM_BLOCKS_E;
 
     for (i = 0; i < WORKLOAD_ITERATIONS; i++) {
@@ -187,13 +183,11 @@ int main(int argc, char **argv) {
     for (i = 0; i < WORKLOAD_ITERATIONS; i++) {
         gettimeofday(&start, NULL);
         int remainingMemory = BLOCK_SIZE; j = 0;
-        unsigned short size, *buffer[128];
+        unsigned short size, *buffer[MAX_ALLOCATION];
 
-        //Allocate around only about 3/4ths of the block
-        //so there is room for variance without segfaulting.  
         while (remainingMemory > ALLOCATION_THRESHOLD) {
-            //Populate the buffer with random allocations
-            size = getRandomNumber(1, MAX_ALLOCATION) * sizeof(unsigned short); //Get a random amount of memory for shorts.
+            // Populate the buffer with random allocations
+            size = getRandomNumber(1, MAX_ALLOCATION) * sizeof(unsigned short); // Get a random amount of memory for shorts.
             buffer[j] = malloc(size);
             *buffer[j++] = size;
             remainingMemory = remainingMemory - (size + METADATA_SIZE); 
@@ -202,18 +196,18 @@ int main(int argc, char **argv) {
         // Repeatedly and randomly free and reallocate until half of the block is available.
         // 50% chance to free a given pointer
         // 25% chance to reallocate a pointer. 
-        while (remainingMemory < 2048) {
+        while (remainingMemory < BLOCK_SIZE / 2) {
             for (k = 0; k < j; k++) {
-                if (flipCoin()) { 
-                    //50% chance to free the pointer.
+                if (getRandomNumber(0, 1)) { 
+                    // 50% chance to free the pointer.
                     if (buffer[k] != NULL) {
                         remainingMemory += *buffer[k] + METADATA_SIZE;
                         free(buffer[k]);
                         buffer[k] = NULL;
                     }
-                    if (flipCoin()) { 
-                        //50% to reallocate from the pointer that was just freed. 
-                        //Smaller range to prevent segfaults due to block splitting.
+                    if (getRandomNumber(0, 1)) { 
+                        // 50% to reallocate from the pointer that was just freed. 
+                        // Smaller range to prevent segfaults due to block splitting.
                         size = getRandomNumber(1, MAX_ALLOCATION / 2) * sizeof(unsigned short);
                         buffer[k] = malloc(size);
                         *buffer[k] = size; 
@@ -256,12 +250,5 @@ double getAverage(int *values, int nValues) {
  * Generates a random number between min and max
  */
 int getRandomNumber(int min, int max) {
-    return (int)((float)rand() / RAND_MAX * (max - min + 1) + min);
-}
-
-/**
- * Generate a true or false randomly. 
-*/ 
-boolean flipCoin() {
-    return (boolean) rand() % 2;
+    return (int)((float) rand() / RAND_MAX * (max - min + 1) + min);
 }
