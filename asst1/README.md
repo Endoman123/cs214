@@ -45,7 +45,7 @@ The new implementations were put under 6 different workloads:
 
 
 
-Each workload was repeated 100 times. Averages (in microseconds) are posted below:
+Each workload was repeated 100 times. Average run times (in microseconds) are posted below:
 
 | Workload | System Impl | ++malloc() |
 |----------|-------------|------------|
