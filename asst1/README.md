@@ -49,11 +49,11 @@ Each workload was repeated 100 times. Average run times (in microseconds) are po
 
 | Workload | ++malloc()  | System Impl |
 |----------|-------------|-------------|
-| A        | 27.48       | 12.33       |
-| B        | 51.22       | 15.79       |
-| C        | 5.44        | 5.66        |
-| D        | 6.31        | 3.36        |
-| E        | 3.02        | 0.54        |
-| F        | 8.40        | 2.74        |
+| A        | 6.37        | 2.48        |
+| B        | 60.89       | 2.75        |
+| C        | 7.36        | 2.68        |
+| D        | 8.16        | 3.45        |
+| E        | 2.66        | 0.61        |
+| F        | 11.72       | 3.66        |
 
 Most workloads run 2-3x slower using mymalloc() and myfree(). This slowdown is mostly seen with workloads B and F, showing almost a 4x decrease in speed from the system implementation. This can be attributed to the coalescion of free blocks in order to optimize the allocation algorithm. Workload C ran nearly the same between the two implementations of malloc() and free(); this workload, however, is extremely random and testing has shown that the runtimes can vary between 2.00-35.00 microseconds for the ++malloc() implentation, and 2.00-15.00 seconds for the system implementation. The overhead for mymalloc() and myfree() could be caused by the breakup and coalescion of allocations after those function calls.
