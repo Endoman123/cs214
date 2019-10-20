@@ -16,7 +16,7 @@ void runWorkloadF();
 const unsigned short BLOCK_SIZE = 4096, METADATA_SIZE = 2;  
 
 int main(int argc, char* argv[]) {
-    //Constants and the workload function array.
+    // Constants and the workload function array.
     const unsigned int WORKLOAD_ITERATIONS = 100, SECONDS_TO_MICROSECONDS = 1000000;
 
     void (*workloads[6]) () = {&runWorkloadA, &runWorkloadB, &runWorkloadC, &runWorkloadD, &runWorkloadE, &runWorkloadF};
@@ -29,14 +29,14 @@ int main(int argc, char* argv[]) {
         "Workload F: Random allocations, frees, and reallocations\n"
     };
 
-    //For time recording purposes.
+    // For time recording purposes.
     struct timeval start, end;
     int workloadTimes[WORKLOAD_ITERATIONS];
 
-    //Seed the random number generator for the workloads that do random generations.
+    // Seed the random number generator for the workloads that do random generations.
     srand(time(0));
 
-    //Run each workload and record the times, printing an average for each.
+    // Run each workload and record the times, printing an average for each.
     int i, j; for (i = 0; i < 6; i++) {
         printf(workloadDescriptions[i]);
         for (j = 0; j < WORKLOAD_ITERATIONS; j++) {
