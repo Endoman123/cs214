@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
         
         gettimeofday(&end, NULL);
         
-        workload[i] = (int) (end.tv_usec - start.tv_usec);
+        workload[i] = (int) ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
     }
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
 
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 
         gettimeofday(&end, NULL);
 
-        workload[i] = (int) (end.tv_usec - start.tv_usec);
+        workload[i] = (int) ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
     }
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
 
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
 
         gettimeofday(&end, NULL);
 
-        workload[i] = (int) (end.tv_usec - start.tv_usec);
+        workload[i] = (int) ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
     }
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
     
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
 
         gettimeofday(&end, NULL);
 
-        workload[i] = (int) (end.tv_usec - start.tv_usec);
+        workload[i] = (int) ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
     }
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
 
@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
 
         gettimeofday(&end, NULL);
 
-        workload[i] = (int) (end.tv_usec - start.tv_usec);
+        workload[i] = (int) ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
     }
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
 
@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
         }
 
         gettimeofday(&end, NULL);
-        workload[i] = (int) (end.tv_usec - start.tv_usec);
+        workload[i] = (int) ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
     }
     printf("Average time: %f microseconds\n\n", getAverage(workload, 100));
 
