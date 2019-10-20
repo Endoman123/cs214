@@ -5,14 +5,15 @@
 
 double getAverage(int*, int);
 int getRandomNumber(int, int);
+
 typedef enum boolean {true = 1, false = 0} boolean;
 boolean flipCoin();
 
 int main(int argc, char **argv) {
     //Constants
     const unsigned int WORKLOAD_ITERATIONS = 100;
-    const unsigned short BLOCK_SIZE = 4096;
-    const unsigned short METADATA_SIZE = 2;  
+    const unsigned short BLOCK_SIZE = 4096, METADATA_SIZE = 2;  
+
     const unsigned int SECONDS_TO_MICROSECONDS = 1000000;
     
     // Setup for measuring execution time. 
@@ -47,9 +48,7 @@ int main(int argc, char **argv) {
     printf("Workload B: malloc 1 byte and store pointer in array x150\n"); 
 
     //Workload constants
-    const unsigned short CYCLE_SIZE_B = 50;
-    const unsigned short NUM_CYCLES_B = 3;
-    const unsigned short MALLOC_SIZE_B = 1;
+    const unsigned short CYCLE_SIZE_B = 50, NUM_CYCLES_B = 3, MALLOC_SIZE_B = 1;
 
     for (i = 0; i < WORKLOAD_ITERATIONS; i++) {
         gettimeofday(&start, NULL);
@@ -81,7 +80,7 @@ int main(int argc, char **argv) {
         
         gettimeofday(&start, NULL);
 
-        // Generate a random number. If even -> malloc. If odd -> free.
+        // 50/50 chance to malloc or free.
         // Stop after mallocing 50 times. Do not free when there are no pointers to.
         while (mallocOperations < MAX_MALLOCS_C) {
             if (flipCoin()) { 
@@ -105,9 +104,7 @@ int main(int argc, char **argv) {
     printf("Workload D: Random malloc and free, up to 50 mallocs\n");
 
     //Workload Constants
-    const unsigned short MAX_MALLOCS_D = 50;
-    const unsigned short MIN_ALLOC = 1;
-    const unsigned short MAX_ALLOC = 64;
+    const unsigned short MAX_MALLOCS_D = 50, MIN_ALLOC = 1, MAX_ALLOC = 64;
 
     for (i = 0; i < WORKLOAD_ITERATIONS; i++) {
         char *buffer[MAX_MALLOCS_D];   
@@ -115,7 +112,7 @@ int main(int argc, char **argv) {
         
         gettimeofday(&start, NULL);
 
-        // Generate a random number. If even -> malloc. If odd -> free.
+        // 50/50 chance to malloc or free.
         // Stop after mallocing 50 times. Do not free when there are no pointers to.
         while (mallocOperations < MAX_MALLOCS_D) {
             if (flipCoin()) {
@@ -145,8 +142,8 @@ int main(int argc, char **argv) {
     }
     printf("Average time: %f microseconds\n\n", getAverage(workload, WORKLOAD_ITERATIONS));
 
-    // E: Populate static block, remove middle, attempt to fill completely 
-    printf("Workload E: Populate static block, remove middle, attempt to fill completely\n");
+    // E: Allocate all available memory into blocks, free randomly sized section, attempt to fill hole completely
+    printf("Workload E: Allocate all available memory into blocks, free randomly sized section, attempt to fill hole completely\n");
     for (i = 0; i < WORKLOAD_ITERATIONS; i++) {
         unsigned short *buffer[17]; 
         gettimeofday(&start, NULL);
