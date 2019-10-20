@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
 
     // F: Randomly allocate, randomly free, and randomly reallocate.
     printf("Workload F: Random allocations, frees, and reallocations\n");
-    const short ALLOCATION_THRESHOLD = 1024, MAX_ALLOCATION = 128, METADATA_SIZE;
+    const short ALLOCATION_THRESHOLD = 1024, MAX_ALLOCATION = 128, METADATA_SIZE = 2;
     for (i = 0; i < 100; i++) {
         gettimeofday(&start, NULL);
         int remainingMemory = 4096; j = 0;
