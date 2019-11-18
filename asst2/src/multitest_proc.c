@@ -27,25 +27,25 @@ int search(int arr[], int arrLen, int target) {
 			for (j = start; j < start + MAX_PROCESS_SIZE; j++) {
 				if (arr[j] == target) {
 					printf("The target has been found by process %d", cpid);
-					exit(1); 
+					exit(j); 
 				}						
 			}
-			exit(0);
+			exit(255);
 		}
 	}	
 	
 	//Wait on the children to finis
-	int status, found = 0;
+	int status, index = -1;
 	for (i = 0; i < numProcs; i++) { 
-		if (found == 0) { //If we haven't found the target yet, wait.
+		if (index == -1) { //If we haven't found the target yet, wait.
 			waitpid(procs[i], &status, 0);
 			if (WIFEXITED(status)) {
 				int exit_status = WEXITSTATUS(status);
-				if (exit_status == 1) found = 1;
+				if (exit_status != 255) index = exit_status + (MAX_PROCESS_SIZE * i);
 			} 
 		} else { //Found the target, time to go on a filicidal killing spree on these processes.
 			kill(procs[i], SIGKILL);
 		}
 	}
-	return found; 
+	return index; 
 }
