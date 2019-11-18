@@ -13,7 +13,10 @@ int search(int arr[], int arrLen, int target) {
 		int pid = fork();
 		if (pid > 0) {
 			procs[i] = pid;
-		} else { //The child will get a pid of 0, so it will go to this if. Let's have it search. 
+		} else if (pid < 0) {
+			printf("Error: An error occurred while creating a new process.");
+		} else { 
+			//The child will get a pid of 0, so it will go to this if. Let's have it search. 
 			int cpid = getpid(); //THe current process is the child, get its pid.
 			int multiplier = 0;
 			
@@ -39,9 +42,9 @@ int search(int arr[], int arrLen, int target) {
 	for (i = 0; i < numProcs; i++) { 
 		if (index == -1) { //If we haven't found the target yet, wait.
 			waitpid(procs[i], &status, 0);
-			if (WIFEXITED(status)) {
-				int exit_status = WEXITSTATUS(status);
-				if (exit_status != 255) index = exit_status + (MAX_PROCESS_SIZE * i);
+			if (WIFEXITED(status)) { //Check if the process ended normally.
+				int exit_status = WEXITSTATUS(status); //Get the exit status by grabbing the last 8 bits of the status. 
+				if (exit_status != 255) index = exit_status + (MAX_PROCESS_SIZE * i); //The exit status will return a number between 0 and 249. Add it to where the child started its loop.
 			} 
 		} else { //Found the target, time to go on a filicidal killing spree on these processes.
 			kill(procs[i], SIGKILL);
