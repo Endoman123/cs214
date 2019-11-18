@@ -47,4 +47,5 @@ int search(int arr[], int arrLen, int target) {
 			kill(procs[i], SIGKILL);
 		}
 	}
+	return found; 
 }
