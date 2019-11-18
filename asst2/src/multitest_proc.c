@@ -27,7 +27,7 @@ int search(int arr[], int arrLen, int target) {
 
 			//Now that we know where this child will be starting, start searching.
 			int start = MAX_PROCESS_SIZE * multiplier, j;
-			for (j = start; j < start + MAX_PROCESS_SIZE; j++) {
+			for (j = start; j < start + MAX_PROCESS_SIZE || j < arrLen; j++) {
 				if (arr[j] == target) {
 					printf("The target has been found by process %d", cpid);
 					exit(j); 
