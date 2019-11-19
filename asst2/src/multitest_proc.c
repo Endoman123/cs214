@@ -1,11 +1,13 @@
-import <stdlib.h>
-import <unistd.h>
-import <math.h>
-
-const int MAX_PROCESS_SIZE = 250;
+#include <stdlib.h>
+#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+#include <math.h>
 
 int search(int arr[], int arrLen, int target) {
-	int numProcs = ceiling( (float) arrLen / 250);
+	const int MAX_PROCESS_SIZE = 250;
+
+	int numProcs = ceil( (double) arrLen / 250);
 	int procs[numProcs], i;
 	
 	//Create the children. Let's put the pids into an array so we can call wait on them later.
