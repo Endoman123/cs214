@@ -4,9 +4,10 @@
 #include <unistd.h>
 #include <math.h>
 
-int search(int arr[], int arrLen, int target) {
-	const int MAX_PROCESS_SIZE = 250;
 
+const int MAX_PROCESS_SIZE = 250;
+
+int search(int arr[], int arrLen, int target) {
 	int numProcs = ceil( (double) arrLen / 250);
 	int procs[numProcs], i;
 	
