@@ -30,7 +30,7 @@ int search(int arr[], int arrLen, int target) {
 			for (j = start; j < start + MAX_PROCESS_SIZE || j < arrLen; j++) {
 				if (arr[j] == target) {
 					printf("The target has been found by process %d", cpid);
-					exit(j); 
+					exit(j - start); //Return the index from the start since the exit code is only 8 bits. 
 				}						
 			}
 			exit(255);
