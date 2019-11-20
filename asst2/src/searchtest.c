@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "multitest.h"
 
@@ -55,7 +56,7 @@ int main(int argc, char** argv) {
         arr[to] = arr[from];
     }
 
-    fclose(f); 
+    fclose(fp); 
     
     return 0;
 }
