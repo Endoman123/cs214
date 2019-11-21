@@ -15,11 +15,6 @@ int main(int argc, char** argv) {
         return -1;
     } 
     
-
-    char* filename = malloc(sizeof(char) * 16);
-    sprintf(filename, "%s_data.csv", SEARCH_TYPE);
-    FILE *fp = fopen(filename, "a+");
-
     int nElem, i, *arr;
     struct timeval start, end;
 
@@ -29,8 +24,6 @@ int main(int argc, char** argv) {
     arr = calloc(nElem, sizeof(int));
     for (i = 0; i < nElem; ++i)
         arr[i] = i;
-    
-    fprintf(fp, "%d,", nElem);
 
     // Shuffle 
     for (i = 0; i < nElem; ++i) {
@@ -48,19 +41,19 @@ int main(int argc, char** argv) {
         int from, to, temp, time;
 
         gettimeofday(&start, NULL);
-        from = search(arr, val);
+        from = search(arr, nElem, val);
         gettimeofday(&end, NULL);
         time = (int) ((end.tv_sec * SECONDS_TO_MICROSECONDS + end.tv_usec) - (start.tv_sec * SECONDS_TO_MICROSECONDS + start.tv_usec)); 
-        fprintf(fp, "%d,", time);
-
+        
+        if (arr[from] == val)
+            printf("found\n");
+        
         to = getRandomValue(0, nElem - 1);
         
         temp = arr[from];
         arr[from] = arr[to];
-        arr[to] = arr[from];
+        arr[to] = temp;
     }
-
-    fclose(fp); 
     
     return 0;
 }
