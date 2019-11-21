@@ -6,8 +6,9 @@
 
 
 const int MAX_PROCESS_SIZE = 250;
+const char* SEARCH_TYPE = "Process";
 
-int search(int arr[], int arrLen, int target) {
+int proc_search(int arr[], int arrLen, int target) {
 	int numProcs = ceil( (double) arrLen / 250);
 	int procs[numProcs], i;
 	
