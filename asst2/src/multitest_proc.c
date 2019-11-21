@@ -10,8 +10,9 @@ const char* SEARCH_TYPE = "process";
 int search_proc(int[], int, int);
 
 int search(int arr[], int length, int target) {
-    int pids[10], pid, numFork = ceil(arrLen / 250.), status, i;
+    int pids[10], pid, numFork = ceil((double) length / 250);
 
+    int i;
     for (i = 0; i < numFork; ++i) {
         pid = fork();
 
@@ -26,12 +27,15 @@ int search(int arr[], int length, int target) {
     }
 
     // TODO: this isn't actually a working fork waiter, rw this.
-    while (n > 0) {
-        pid = wait(&status);
-        printf("Child with PID %ld exited with status 0x%x.\n", (long)pid, status);
-        --n;  // TODO(pts): Remove pid from the pids array.
+    int status, exitCode = 255; 
+    for (i = 0; i < numFork; i++) {
+        waitpid(pids[i], &status, 0);
+        if (WIFEXITED(status)) exitCode = WEXITSTATUS(status);
+        if (exitCode != 255) return exitCode + MAX_PROCESS_SIZE * i;
     }
+
 }
+
 
 int search_proc(int arr[], int length, int target) {
     int i = 0;
