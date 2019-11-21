@@ -12,3 +12,4 @@ clean:
 	rm -rf bin
 	rm -f search_proc
 	rm -f search_thread
+	rm -f *_data.csv
