@@ -10,12 +10,16 @@ const unsigned int WORKLOAD_ITERATIONS = 100, SECONDS_TO_MICROSECONDS = 1000000;
 int main(int argc, char** argv) {
     srand(time(0));
 
-    if (argc != 3) {
-        printf("Use: searchtest [nElem] [filename]");
+    if (argc != 1) {
+        printf("Error: Incorrect number of arguments.\n");
         return -1;
-    }
+    } 
+    
 
-    FILE *fp = fopen(argv[2], "w");
+    char* filename = malloc(sizeof(char) * 16);
+    sprintf(filename, "%s_data.csv", SEARCH_TYPE);
+    FILE *fp = fopen(filename, "a+");
+
     int nElem, i, *arr;
     struct timeval start, end;
 
@@ -40,7 +44,7 @@ int main(int argc, char** argv) {
     // Search time
     // Ihadurca here, time to cloud the server with too many tests
     int val = getRandomValue(0, nElem - 1);
-    for (i = 0; i < 10000000; ++i) {
+    for (i = 0; i < 10; ++i) {
         int from, to, temp, time;
 
         gettimeofday(&start, NULL);

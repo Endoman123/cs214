@@ -6,7 +6,7 @@ proc: bin/multitest_proc.o src/searchtest.c
 
 bin/multitest_proc.o: src/multitest_proc.c
 	@mkdir -p bin
-	gcc -c src/multitest_proc.c -o bin/multitest_proc.o
+	gcc -lm -c src/multitest_proc.c -o bin/multitest_proc.o
 
 clean:
 	rm -rf bin
