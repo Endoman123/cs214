@@ -10,7 +10,7 @@ const unsigned int WORKLOAD_ITERATIONS = 100, SECONDS_TO_MICROSECONDS = 1000000;
 int main(int argc, char** argv) {
     srand(time(0));
 
-    if (argc != 1) {
+    if (argc != 2) {
         printf("Error: Incorrect number of arguments.\n");
         return -1;
     } 
