@@ -7,15 +7,35 @@
 const int MAX_PROCESS_SIZE = 250;
 const char* SEARCH_TYPE = "process";
 
-int search_proc(int[], int, int, int);
+int search_proc(int[], int, int);
 
 int search(int arr[], int length, int target) {
-    return search_proc(arr, 0, length, target);
+    int pids[10], pid, numFork = ceil(arrLen / 250.), status, i;
+
+    for (i = 0; i < numFork; ++i) {
+        pid = fork();
+
+        if (pid < 0) { // Case 1: Forking gives error
+            printf("Error: error when creating new process"); 
+        } else if (pid > 0) { // Case 2: Fork succeeds, this is the parent process
+            pids[i] = pid;
+        } else { // Case 3: Fork succeeds, this is the child process
+            int offset = MAX_PROCESS_SIZE * i, ret = search_proc((arr + i), length, target);
+            exit(ret);
+        }
+    }
+
+    // TODO: this isn't actually a working fork waiter, rw this.
+    while (n > 0) {
+        pid = wait(&status);
+        printf("Child with PID %ld exited with status 0x%x.\n", (long)pid, status);
+        --n;  // TODO(pts): Remove pid from the pids array.
+    }
 }
 
-int search_proc(int arr[], int from, int length, int target) {
-    int i = from;
-    for (; i - from < length; i++) {
+int search_proc(int arr[], int length, int target) {
+    int i = 0;
+    for (; i < length; i++) {
         if (arr[i] == target)
             return i;
     }    
