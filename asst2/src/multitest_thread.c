@@ -3,11 +3,20 @@
 #include <pthread.h>
 #include <math.h>
 
-const int MAX_THREADS_SIZE = 250;
+const int MAX_THREAD_SIZE = 250;
 const char* SEARCH_TYPE = "thread";
 
+typedef struct _SearchArgs {
+    int arrLen;
+    int target;
+    int* resultIdx;
+    int arr[];
+} SearchArgs;
+
+void* sequentialSearch(void*);
+
 int search(int arr[], int arrLen, int target) {
-	int numThreads = ceil ((double) arrLen / MAX_THREADS_SIZE);
+	int numThreads = ceil ((double) arrLen / MAX_THREAD_SIZE);
     //pthreads_t threads[numThreads];
  
     int i;
@@ -19,11 +28,11 @@ int search(int arr[], int arrLen, int target) {
         int len = MAX_THREAD_SIZE <= arrLen - start ? MAX_THREAD_SIZE : arrLen - start; 
            
         //Make the arguments for the thread since it can only take in a void*. We need to pass in three arguments so lets put it in a struct to make it simple.         
-        SearchArgs args = malloc(sizeof(SearchArgs));
-        args.arr = arr + start;
-        args.arrLen = len;
-        args.target = target;
-        
+        SearchArgs* args = malloc(sizeof(SearchArgs));
+        args -> arr = arr + start;
+        args -> arrLen = len;
+        args -> target = target;
+        args -> resultIdx = malloc(sizeof(int));
         //Make the thread and get its return value from the status
         void* status;
         pthread_create(&thread, NULL, sequentialSearch, args);
@@ -35,15 +44,18 @@ int search(int arr[], int arrLen, int target) {
 
 }
 
-typedef struct _SearchArgs {
-    int arr[];
-    int arrLen;
-    int target;
-} SearchArgs;
 
-void sequentialSearch(void* args) {
-
-
+void* sequentialSearch(void* sArgs) {
+    SearchArgs* args = (SearchArgs*) sArgs;
+    int i;
+    *(args -> resultIdx) = -1;
+    for (i = 0; i < args -> arrLen; i++)
+         if (args -> arr[i] == args -> target) {
+            //Return the int as a pointer. Since it's bad practice to return the address of a local variable, lets use another part of the struct to return the index.
+            *(args -> resultIdx) = i;
+            break;
+        }
+    pthread_exit(args -> resultIdx); 
 }
 
 
