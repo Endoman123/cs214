@@ -55,6 +55,12 @@ int main(int argc, char** argv) {
         from = search(arr, nElem, val);
         gettimeofday(&end, NULL);
         time = (int) ((end.tv_sec * SECONDS_TO_MICROSECONDS + end.tv_usec) - (start.tv_sec * SECONDS_TO_MICROSECONDS + start.tv_usec)); 
+
+        //Lets check the search in the terminal
+        printf("The %s search has found the target (%d) at index %d\n", SEARCH_TYPE, val, from);
+        if (arr[from] == val) printf("The search found the target correctly\n");
+        else printf("The search is scuffed\n");
+
         if (i < SEARCH_ITERATIONS - 1) fprintf(fp, "%d, ", time); //Each number after the total number of elements is the time it took to search.
         else fprintf(fp, "%d", time); //To make the rows look cleaner, lets end the row without a comma.
 

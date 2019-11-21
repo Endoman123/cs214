@@ -10,7 +10,7 @@ typedef struct _SearchArgs {
     int arrLen;
     int target;
     int* resultIdx;
-    int arr[];
+    int* arr;
 } SearchArgs;
 
 void* sequentialSearch(void*);
@@ -28,11 +28,11 @@ int search(int arr[], int arrLen, int target) {
         int len = MAX_THREAD_SIZE <= arrLen - start ? MAX_THREAD_SIZE : arrLen - start; 
            
         //Make the arguments for the thread since it can only take in a void*. We need to pass in three arguments so lets put it in a struct to make it simple.         
-        SearchArgs* args = malloc(sizeof(SearchArgs));
-        args -> arr = arr + start;
+        SearchArgs* args = malloc(sizeof(SearchArgs) + sizeof(int) * MAX_THREAD_SIZE);
         args -> arrLen = len;
         args -> target = target;
         args -> resultIdx = malloc(sizeof(int));
+        args -> arr = arr + start;
         //Make the thread and get its return value from the status
         void* status;
         pthread_create(&thread, NULL, sequentialSearch, args);
