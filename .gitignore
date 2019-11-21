@@ -5,11 +5,14 @@
 !Makefile
 !makefile
 
-# Track everything that has a file extension, but ignore object files and
-# vim swap
+# Track everything that has a file extension,
+# ignore object files
 !*.*
 *.o
+
+# Vim ignore
 *.sw[po]
+.nfs*
 
 # Track this
 !/**/
