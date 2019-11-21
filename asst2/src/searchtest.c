@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
 
         temp = arr[i];
         arr[i] = arr[to];
-        arr[to] = arr[i];
+        arr[to] = temp;
     }
     
     // Search time
@@ -44,10 +44,7 @@ int main(int argc, char** argv) {
         from = search(arr, nElem, val);
         gettimeofday(&end, NULL);
         time = (int) ((end.tv_sec * SECONDS_TO_MICROSECONDS + end.tv_usec) - (start.tv_sec * SECONDS_TO_MICROSECONDS + start.tv_usec)); 
-        
-        if (arr[from] == val)
-            printf("found\n");
-        
+
         to = getRandomValue(0, nElem - 1);
         
         temp = arr[from];
