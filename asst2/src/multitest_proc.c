@@ -20,20 +20,26 @@ int search(int* arr, int length, int target, int maxSize) {
             pids[i] = pid;
         } else { // Case 3: Fork succeeds, this is the child process
             int offset = maxSize * i, 
-                arrLen = maxSize + offset < length ? maxSize : length - offset - 1,
-                ret = sequentialSearch((arr + i * maxSize), arrLen, target);
+                searchLen = maxSize + offset < length ? maxSize : length - offset,
+                ret = sequentialSearch((arr + offset), searchLen, target);
+            
             exit(ret);
         }
     }
     
     // Wait for child pid here
-    int status, exitCode = 255; 
+    int ret = -1, status, exitCode = 255; 
     for (i = 0; i < numFork; i++) {
         waitpid(pids[i], &status, 0);
-        if (WIFEXITED(status)) exitCode = WEXITSTATUS(status);
-        if (exitCode <= 250) return exitCode + maxSize * i;
+
+        if (WIFEXITED(status)) 
+            exitCode = WEXITSTATUS(status);
+        
+        if (exitCode <= 250) 
+            ret = exitCode + maxSize * i;
     }
-    return -1;
+
+    return ret;
 }
 
 int sequentialSearch(int* arr, int length, int target) {

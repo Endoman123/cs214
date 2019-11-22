@@ -34,8 +34,8 @@ int main(int argc, char** argv) {
     int i, *timevalues = calloc(WORKLOAD_ITERATIONS, sizeof(int));
     double min, max, mean, stdev;
     
-    // for (i = 1000; i < 1000000; i += 1000) { 
-        // printf("Test A: %d elements, 100 elements per coprocess\n", i);
+    for (i = 1000; i < 1000000; i += 1000) { 
+        printf("Test A: %d elements, 100 elements per coprocess\n", i);
         timevalues = performWorkload(100, 10, timevalues);
     
         min = getMin(timevalues, WORKLOAD_ITERATIONS);
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
         printf("Max: %d\n", max); 
         printf("Mean: %d\n", mean);
         printf("Standard Devation: %d\n\n", stdev);
-    // }
+    }
 
     fclose(fp);
     return 0;
@@ -137,7 +137,7 @@ int *performWorkload(int arrLen, int maxSize, int *timevalues) {
     }
 
     // Free the array before returning
-    // free(arr);
+    free(arr);
 
     return timevalues;
 }
