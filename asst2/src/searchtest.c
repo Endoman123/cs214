@@ -9,8 +9,7 @@ double getMax(int[], int);
 double getMin(int[], int);
 double getMean(int[], int);
 double getStandardDeviation(int[], int);
-int[] performWorkload(int[], int, int, int)
-
+int *performWorkload(int, int, int *);
  
 const unsigned int WORKLOAD_ITERATIONS = 100, SECONDS_TO_MICROSECONDS = 1000000;
 
@@ -22,51 +21,33 @@ int main(int argc, char** argv) {
         return -1;
     } 
     
-    int i, *arr;
-    struct timeval start, end;
+    
 
     //File setup
     char* filename = malloc(sizeof(char) * 16); //16 is the max length of the filename.
     sprintf(filename, "%s_data.csv", SEARCH_TYPE);
     FILE* fp = fopen(filename, "a+");
-    
-    //Set up the file header so boomer brains can read it
-    //fprintf(fp, "Number of elements, time...\n");
-    fprintf(fp, "%d, ", nElem); //Put the number of elements as the first thing in the row.
-    fflush(fp);
 
-    // Initialize array
-    arr = calloc(nElem, sizeof(int));
-    for (i = 0; i < nElem; i++)
-        arr[i] = i;  
-    
-    // Shuffle 
-    for (i = 0; i < nElem; i++) {
-        int to = getRandomValue(0, nElem - 1), temp;
-
-        temp = arr[i];
-        arr[i] = arr[to];
-        arr[to] = temp;
-    }
-   
     // Search time
     // We need to keep track of the times elapsed for calculation of the mean, median, and standard deviation
     printf("The search is being conducted with multi-mode -%s\n", SEARCH_TYPE);
-    int timevalues[WORKLOAD_ITERATIONS]; 
-    int val = getRandomValue(0, nElem - 1);
+    int i, *timevalues = calloc(WORKLOAD_ITERATIONS, sizeof(int));
+    double min, max, mean, stdev;
     
-    printf("Test A\n");
-    printf("Run the search with an array of size x and splits of y");
+    for (i = 1000; i < 1000000; i += 1000) { 
+        printf("Test A: %d elements, 100 elements per coprocess\n", i);
+        timevalues = performWorkload(i, 100, timevalues);
     
-    double min = getMin(timevalues, WORKLOAD_ITERATIONS);
-    double max = getMax(timevalues, WORKLOAD_ITERATIONS);
-    double mean = getMean(timevalues, WORKLOAD_ITERATIONS);    
-    double stdev = getStandardDeviation(timevalues, WORKLOAD_ITERATIONS);
-    
-    printf("Min: %d\n", min);
-    printf("Max: %d\n", max); 
-    printf("Mean: %d\n", mean);
-    printf("Standard Devation: %d\n", stdev);
+        min = getMin(timevalues, WORKLOAD_ITERATIONS);
+        max = getMax(timevalues, WORKLOAD_ITERATIONS);
+        mean = getMean(timevalues, WORKLOAD_ITERATIONS);    
+        stdev = getStandardDeviation(timevalues, WORKLOAD_ITERATIONS);
+        
+        printf("Min: %d\n", min);
+        printf("Max: %d\n", max); 
+        printf("Mean: %d\n", mean);
+        printf("Standard Devation: %d\n\n", stdev);
+    }
 
     fclose(fp);
     return 0;
@@ -74,12 +55,6 @@ int main(int argc, char** argv) {
 
 int getRandomValue(int min, int max) {
     return (int)((float) rand() / RAND_MAX * (max - min + 1) + min);
-}
-
-int seqSearch(int arr[], int arrLen, int target) {
-    int i;
-    for (i = 0; i < arrLen; i++) if (arr[i] == target) return i;   
-    return -1;
 }
 
 double getMin(int arr[], int arrLen) {
@@ -116,24 +91,50 @@ double getStandardDeviation(int arr[], int arrLen) {
     return sqrt(diffMean);
 }
 
-int[] performWorkload(int arr[], int arrLen, int val, int maxSize) {
-    int timevalues[WORKLOAD_ITERATIONS];
+/**
+ * Performs a workload given the specified array length and max array chunk size per process/thread.
+ *
+ * Returns array of time values for each iteration
+ */
+int *performWorkload(int arrLen, int maxSize, int *timevalues) {
+    int i, *arr;
+    struct timeval start, end;
+    
+    // Initialize array
+    arr = calloc(arrLen, sizeof(int));
+    for (i = 0; i < arrLen; i++)
+        arr[i] = i;  
+    
+    // Shuffle 
+    for (i = 0; i < arrLen; i++) {
+        int to = getRandomValue(0, arrLen - 1), temp;
 
+        temp = arr[i];
+        arr[i] = arr[to];
+        arr[to] = temp;
+    }
+
+    // Get random value to search for
+    int val = getRandomValue(0, arrLen - 1); 
     for (i = 0; i < WORKLOAD_ITERATIONS; i++) {
        int valIdx, newIdx, temp, time;
 
-       //Time
+       // Time
        gettimeofday(&start, NULL);
        valIdx = search(arr, arrLen, val);
        gettimeofday(&end, NULL);
        time = (int) ((end.tv_sec * SECONDS_TO_MICROSECONDS + end.tv_usec) - (start.tv_sec * SECONDS_TO_MICROSECONDS + start.tv_usec)); 
        timevalues[i] = time;
        
-       //Swap the target with a random index for our next search.
+       // Swap the target with a random index for our next search.
        newIdx = getRandomValue(0, arrLen - 1);
        temp = arr[valIdx];
        arr[valIdx] = arr[newIdx];
        arr[newIdx] = temp;
     }
+
+    // Free the array before returning
+    free(arr);
+
     return timevalues;
 }
