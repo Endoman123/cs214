@@ -125,7 +125,10 @@ int *performWorkload(int arrLen, int maxSize, int *timevalues) {
        gettimeofday(&end, NULL);
        time = (int) ((end.tv_sec * SECONDS_TO_MICROSECONDS + end.tv_usec) - (start.tv_sec * SECONDS_TO_MICROSECONDS + start.tv_usec)); 
        timevalues[i] = time;
-       
+      
+        if (arr[valIdx] != val)
+            printf("not valid\n");
+
        // Swap the target with a random index for our next search.
        newIdx = getRandomValue(0, arrLen - 1);
        temp = arr[valIdx];

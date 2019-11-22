@@ -43,7 +43,10 @@ int search(int arr[], int arrLen, int target, int maxSize) {
     void* status; 
     for (i = 0; i < numThreads; i++) {
         pthread_join(threads[i], &status);
-        if (idx == -1) idx = *((int*) status) + maxSize * i;
+        
+        if (idx == -1 && *((int *)status) != -1)
+            idx = *((int*) status) + maxSize * i;
+        
         free(argsArr[i]);
     }
        
