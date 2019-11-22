@@ -16,7 +16,7 @@ int search(int* arr, int length, int target, int maxSize) {
         pid = fork();
 
         if (pid < 0) { // Case 1: Forking gives error
-            printf("Error: error when creating new process"); 
+            printf("Error: error when creating new process\n"); 
         } else if (pid > 0) { // Case 2: Fork succeeds, this is the parent process
             pids[i] = pid;
         } else { // Case 3: Fork succeeds, this is the child process
