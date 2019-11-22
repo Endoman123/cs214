@@ -1,0 +1,4 @@
+test1: small array size, small # of processes/threads
+test2: large array size, small # of processes/threads
+test3: large array size, large # of processes/threads
+test4: small array size, large # of processes/threads
