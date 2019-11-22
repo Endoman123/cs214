@@ -16,6 +16,7 @@ void* sequentialSearch(void*);
 
 int search(int arr[], int arrLen, int target, int maxSize) {
 	int numThreads = ceil ((double) arrLen / maxSize);
+    SearchArgs* argsArr[numThreads];
  
     int i;
     pthread_t threads[numThreads]; 
@@ -32,7 +33,7 @@ int search(int arr[], int arrLen, int target, int maxSize) {
         args -> target = target;
         args -> resultIdx = malloc(sizeof(int));
         args -> arr = arr + start;
-
+        argsArr[i] = args;
         //Make the thread and get its return value from the status
         pthread_create(&thread, NULL, sequentialSearch, args);
         threads[i] = thread;
@@ -43,10 +44,9 @@ int search(int arr[], int arrLen, int target, int maxSize) {
     for (i = 0; i < numThreads; i++) {
         pthread_join(threads[i], &status);
         if (idx == -1) idx = *((int*) status) + maxSize * i;
-        printf("Thread found index %d\n", idx);
+        free(argsArr[i]);
     }
        
-    printf("End search\n\n");
     if (idx >= 0) return idx;
     else return -1;
 }
