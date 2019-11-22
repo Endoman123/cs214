@@ -1,4 +1,7 @@
-test1: small array size [100], small # [5] of processes/threads
-test2: large array size [20000], small # [5] of processes/threads
-test3: large array size [20000], large # [10000] of processes/threads
-test4: small array size [100], large # [50] of processes/threads
+A) Increasing array size, constant subarray size
+   This will test for the efficiency and parallelism given an increasing number of coprocesses
+   processing the same number of values.
+
+B) Constant array size, increasing subarray size
+   This will test for the efficiency and parallelism given an increasing number of coprocesses
+   processing smaller and smaller sub-workloads.

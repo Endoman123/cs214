@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <unistd.h>
+
 #include "multitest.h"
 
 int getRandomValue(int, int);
@@ -9,8 +11,9 @@ double getMax(int[], int);
 double getMin(int[], int);
 double getMean(int[], int);
 double getStandardDeviation(int[], int);
-int *performWorkload(int, int, int *);
- 
+int performWorkloadA(int, int *);
+int performWorkloadB(int *, int, int, int *);
+
 const unsigned int WORKLOAD_ITERATIONS = 100, SECONDS_TO_MICROSECONDS = 1000000;
 
 int main(int argc, char** argv) {
@@ -21,10 +24,8 @@ int main(int argc, char** argv) {
         return -1;
     } 
     
-    
-
-    //File setup
-    char* filename = malloc(sizeof(char) * 16); //16 is the max length of the filename.
+    // File setup
+    char* filename = malloc(sizeof(char) * 16); 
     sprintf(filename, "%s_data.csv", SEARCH_TYPE);
     FILE* fp = fopen(filename, "a+");
 
@@ -34,9 +35,16 @@ int main(int argc, char** argv) {
     int i, *timevalues = calloc(WORKLOAD_ITERATIONS, sizeof(int));
     double min, max, mean, stdev;
     
-    for (i = 1000; i < 1000000; i += 1000) { 
-        printf("Test A: %d elements, 100 elements per coprocess\n", i);
-        timevalues = performWorkload(100, 10, timevalues);
+    // Workload A: increasing array size
+    printf("Workload A: Increasing array size, constant subarray size\n");
+    sleep(1);
+    printf("Using array sizes in multiples of 1000 up to 1000000, with 100 elements per coprocess.\n");
+    printf("--------------------------------------------------------------------------\n");
+    sleep(1); 
+    for (i = 1; i <= 1000; ++i) {
+        int arrSize = i * 1000; 
+        printf("Test %d/1000: %d elements\n", i, arrSize);
+        performWorkloadA(arrSize, timevalues);
     
         min = getMin(timevalues, WORKLOAD_ITERATIONS);
         max = getMax(timevalues, WORKLOAD_ITERATIONS);
@@ -47,6 +55,43 @@ int main(int argc, char** argv) {
         printf("Max: %d\n", max); 
         printf("Mean: %d\n", mean);
         printf("Standard Devation: %d\n\n", stdev);
+    }
+
+    // Workload B: increasing subarray size
+    printf("Workload B: Constant array size, increasing subarray size\n");
+    sleep(1);
+    printf("Using arrays with 1000000, with subarray sizes in multiples of 100 elements per coprocess, up to 100000 elements.\n");
+    printf("--------------------------------------------------------------------------\n");
+    sleep(1); 
+    
+    // Use a single array for this
+    int arrLen = 1000000, *arr = calloc(arrLen, sizeof(int));
+    for (i = 0; i < arrLen; i++)
+        arr[i] = i;  
+    
+    for (i = 0; i < arrLen; i++) {
+        int to = getRandomValue(0, arrLen - 1), temp;
+
+        temp = arr[i];
+        arr[i] = arr[to];
+        arr[to] = temp;
+    }
+
+    for (i = 1; i <= 1000; ++i) {
+        int arrSize = i * 100;  
+        printf("Test %d/1000: %d elements per coprocess\n", i, arrSize);
+        
+        performWorkloadB(arr, arrLen, arrSize, timevalues);
+    
+        min = getMin(timevalues, WORKLOAD_ITERATIONS);
+        max = getMax(timevalues, WORKLOAD_ITERATIONS);
+        mean = getMean(timevalues, WORKLOAD_ITERATIONS);    
+        stdev = getStandardDeviation(timevalues, WORKLOAD_ITERATIONS);
+        
+        printf("Min: %dms\n", min);
+        printf("Max: %dms\n", max); 
+        printf("Mean: %dms\n", mean);
+        printf("Standard Devation: %dms\n\n", stdev);
     }
 
     fclose(fp);
@@ -96,7 +141,7 @@ double getStandardDeviation(int arr[], int arrLen) {
  *
  * Returns array of time values for each iteration
  */
-int *performWorkload(int arrLen, int maxSize, int *timevalues) {
+int performWorkloadA(int arrLen, int *timevalues) {
     int i, *arr;
     struct timeval start, end;
     
@@ -121,7 +166,7 @@ int *performWorkload(int arrLen, int maxSize, int *timevalues) {
 
        // Time
        gettimeofday(&start, NULL);
-       valIdx = search(arr, arrLen, val, maxSize);
+       valIdx = search(arr, arrLen, val, 100);
        gettimeofday(&end, NULL);
        time = (int) ((end.tv_sec * SECONDS_TO_MICROSECONDS + end.tv_usec) - (start.tv_sec * SECONDS_TO_MICROSECONDS + start.tv_usec)); 
        timevalues[i] = time;
@@ -139,5 +184,44 @@ int *performWorkload(int arrLen, int maxSize, int *timevalues) {
     // Free the array before returning
     free(arr);
 
-    return timevalues;
+    return 0;
 }
+
+/**
+ * Performs a workload given the specified array length and max array chunk size per process/thread.
+ *
+ * Returns array of time values for each iteration
+ */
+int performWorkloadB(int *arr, int arrLen, int maxSize, int *timevalues) {
+    int i;
+    struct timeval start, end;
+    
+    // Get random value to search for
+    int val = getRandomValue(0, arrLen - 1); 
+    for (i = 0; i < WORKLOAD_ITERATIONS; i++) {
+       int valIdx, newIdx, temp, time;
+
+       // Time
+       gettimeofday(&start, NULL);
+       valIdx = search(arr, arrLen, val, 100);
+       gettimeofday(&end, NULL);
+       time = (int) ((end.tv_sec * SECONDS_TO_MICROSECONDS + end.tv_usec) - (start.tv_sec * SECONDS_TO_MICROSECONDS + start.tv_usec)); 
+       timevalues[i] = time;
+      
+        if (arr[valIdx] != val)
+            printf("not valid\n");
+
+       // Swap the target with a random index for our next search.
+       newIdx = getRandomValue(0, arrLen - 1);
+       temp = arr[valIdx];
+       arr[valIdx] = arr[newIdx];
+       arr[newIdx] = temp;
+    }
+
+    // Free the array before returning
+    free(arr);
+
+    return 0;
+}
+
+
