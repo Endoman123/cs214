@@ -19,8 +19,8 @@ const unsigned int WORKLOAD_ITERATIONS = 100, SECONDS_TO_MICROSECONDS = 1000000;
 int main(int argc, char** argv) {
     srand(time(0));
 
-    if (argc != 2) {
-        printf("Error: Incorrect number of arguments.\n");
+    if (argc != 1) {
+        printf("Error: Please run with no arguments.\n");
         return -1;
     } 
     
@@ -40,8 +40,7 @@ int main(int argc, char** argv) {
     // Initialize array
     arr = calloc(NUM_ELEM_A, sizeof(int));
     for (i = 0; i < NUM_ELEM_A; i++)
-        arr[i] = i;
-    
+        arr[i] = i;  
     
     // Shuffle 
     for (i = 0; i < NUM_ELEM_A; i++) {
@@ -81,7 +80,9 @@ int main(int argc, char** argv) {
     double max = getMax(timevalues_A, SEARCH_ITERATIONS_A);
     double mean = getMean(timevalues_A, SEARCH_ITERATIONS_A);    
     double stdev = getStandardDeviation(timevalues_A, SEARCH_ITERATIONS_A);
- 
+    
+    printf("Min: %d\n", min);
+    printf("Max: %d\n", max); 
     printf("Mean: %d\n", mean);
     printf("Standard Devation: %d\n", stdev);
 
