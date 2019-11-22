@@ -9,11 +9,11 @@ const char* SEARCH_TYPE = "process";
 
 int search_proc(int[], int, int);
 
-int search(int arr[], int length, int target) {
-    int pids[10], pid, numFork = ceil((double) length / 250);
+int search(int* arr, int length, int target) {
+    int numFork = ceil((double) length / 250), pids[numFork], pid; 
 
     int i;
-    for (i = 0; i < numFork; ++i) {
+    for (i = 0; i < numFork; i++) {
         pid = fork();
 
         if (pid < 0) { // Case 1: Forking gives error
@@ -21,7 +21,9 @@ int search(int arr[], int length, int target) {
         } else if (pid > 0) { // Case 2: Fork succeeds, this is the parent process
             pids[i] = pid;
         } else { // Case 3: Fork succeeds, this is the child process
-            int offset = MAX_PROCESS_SIZE * i, ret = search_proc((arr + i), length, target);
+            int offset = MAX_PROCESS_SIZE * i, 
+                arrLen = MAX_PROCESS_SIZE + offset < length ? MAX_PROCESS_SIZE : length - offset - 1,
+                ret = search_proc((arr + i * MAX_PROCESS_SIZE), arrLen, target);
             exit(ret);
         }
     }
@@ -31,13 +33,13 @@ int search(int arr[], int length, int target) {
     for (i = 0; i < numFork; i++) {
         waitpid(pids[i], &status, 0);
         if (WIFEXITED(status)) exitCode = WEXITSTATUS(status);
-        if (exitCode != 255) return exitCode + MAX_PROCESS_SIZE * i;
+        if (exitCode <= 250) return exitCode + MAX_PROCESS_SIZE * i;
     }
-
+    return -1;
 }
 
 
-int search_proc(int arr[], int length, int target) {
+int search_proc(int* arr, int length, int target) {
     int i = 0;
     for (; i < length; i++) {
         if (arr[i] == target)
