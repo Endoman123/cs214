@@ -4,12 +4,11 @@
 #include <unistd.h>
 #include <math.h>
 
-const int MAX_PROCESS_SIZE = 250;
 const char* SEARCH_TYPE = "process";
 
 int search_proc(int[], int, int);
 
-int search(int* arr, int length, int target) {
+int search(int* arr, int length, int target, int maxSize) {
     int numFork = ceil((double) length / 250), pids[numFork], pid; 
 
     int i;
@@ -21,9 +20,9 @@ int search(int* arr, int length, int target) {
         } else if (pid > 0) { // Case 2: Fork succeeds, this is the parent process
             pids[i] = pid;
         } else { // Case 3: Fork succeeds, this is the child process
-            int offset = MAX_PROCESS_SIZE * i, 
-                arrLen = MAX_PROCESS_SIZE + offset < length ? MAX_PROCESS_SIZE : length - offset - 1,
-                ret = search_proc((arr + i * MAX_PROCESS_SIZE), arrLen, target);
+            int offset = maxSize * i, 
+                arrLen = maxSize + offset < length ? maxSize : length - offset - 1,
+                ret = search_proc((arr + i * maxSize), arrLen, target);
             exit(ret);
         }
     }
@@ -33,7 +32,7 @@ int search(int* arr, int length, int target) {
     for (i = 0; i < numFork; i++) {
         waitpid(pids[i], &status, 0);
         if (WIFEXITED(status)) exitCode = WEXITSTATUS(status);
-        if (exitCode <= 250) return exitCode + MAX_PROCESS_SIZE * i;
+        if (exitCode <= 250) return exitCode + maxSize * i;
     }
     return -1;
 }

@@ -3,7 +3,6 @@
 #include <pthread.h>
 #include <math.h>
 
-const int MAX_THREAD_SIZE = 250;
 const char* SEARCH_TYPE = "thread";
 
 typedef struct _SearchArgs {
@@ -15,8 +14,8 @@ typedef struct _SearchArgs {
 
 void* sequentialSearch(void*);
 
-int search(int arr[], int arrLen, int target) {
-	int numThreads = ceil ((double) arrLen / MAX_THREAD_SIZE);
+int search(int arr[], int arrLen, int target, int maxSize) {
+	int numThreads = ceil ((double) arrLen / maxSize);
  
     int i;
     pthread_t threads[numThreads]; 
@@ -24,8 +23,8 @@ int search(int arr[], int arrLen, int target) {
     for (i = 0; i < numThreads; i++) {
         pthread_t thread;
         //Find where this thread should start.
-        int start = MAX_THREAD_SIZE * i;
-        int len = MAX_THREAD_SIZE <= arrLen - start ? MAX_THREAD_SIZE : arrLen - start; 
+        int start = maxSize * i;
+        int len = maxSize <= arrLen - start ? maxSize : arrLen - start; 
            
         //Make the arguments for the thread since it can only take in a void*. We need to pass in three arguments so lets put it in a struct to make it simple.         
         SearchArgs* args = malloc(sizeof(SearchArgs*) + sizeof(int) * arrLen);
@@ -43,7 +42,7 @@ int search(int arr[], int arrLen, int target) {
     void* status; 
     for (i = 0; i < numThreads; i++) {
         pthread_join(threads[i], &status);
-        if (idx == -1) idx = *((int*) status) + MAX_THREAD_SIZE * i;
+        if (idx == -1) idx = *((int*) status) + maxSize * i;
         printf("Thread found index %d\n", idx);
     }
        
