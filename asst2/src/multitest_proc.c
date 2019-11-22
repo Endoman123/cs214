@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <math.h>
 
+#include "multitest.h"
+
 const char* SEARCH_TYPE = "process";
 
 int sequentialSearch(int[], int, int);
@@ -37,6 +39,7 @@ int search(int* arr, int length, int target, int maxSize) {
         
         if (exitCode <= 250) 
             ret = exitCode + maxSize * i;
+       
     }
 
     return ret;

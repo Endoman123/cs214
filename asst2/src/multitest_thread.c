@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <signal.h>
 #include <math.h>
+
+#include "multitest.h"
 
 const char* SEARCH_TYPE = "thread";
 

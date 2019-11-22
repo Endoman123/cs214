@@ -44,17 +44,20 @@ int main(int argc, char** argv) {
     for (i = 1; i <= 1000; ++i) {
         int arrSize = i * 1000; 
         printf("Test %d/1000: %d elements\n", i, arrSize);
+
         performWorkloadA(arrSize, timevalues);
+   
+        printf("%d\n", timevalues[50]);
     
         min = getMin(timevalues, WORKLOAD_ITERATIONS);
         max = getMax(timevalues, WORKLOAD_ITERATIONS);
         mean = getMean(timevalues, WORKLOAD_ITERATIONS);    
         stdev = getStandardDeviation(timevalues, WORKLOAD_ITERATIONS);
         
-        printf("Min: %d\n", min);
-        printf("Max: %d\n", max); 
-        printf("Mean: %d\n", mean);
-        printf("Standard Devation: %d\n\n", stdev);
+        printf("Min: %fms\n", min);
+        printf("Max: %fms\n", max); 
+        printf("Mean: %fms\n", mean);
+        printf("Standard Devation: %fms\n\n", stdev);
     }
 
     // Workload B: increasing subarray size
@@ -82,16 +85,16 @@ int main(int argc, char** argv) {
         printf("Test %d/1000: %d elements per coprocess\n", i, arrSize);
         
         performWorkloadB(arr, arrLen, arrSize, timevalues);
-    
+
         min = getMin(timevalues, WORKLOAD_ITERATIONS);
         max = getMax(timevalues, WORKLOAD_ITERATIONS);
         mean = getMean(timevalues, WORKLOAD_ITERATIONS);    
         stdev = getStandardDeviation(timevalues, WORKLOAD_ITERATIONS);
         
-        printf("Min: %dms\n", min);
-        printf("Max: %dms\n", max); 
-        printf("Mean: %dms\n", mean);
-        printf("Standard Devation: %dms\n\n", stdev);
+        printf("Min: %fms\n", min);
+        printf("Max: %fms\n", max); 
+        printf("Mean: %fms\n", mean);
+        printf("Standard Devation: %fms\n\n", stdev);
     }
 
     fclose(fp);
@@ -104,7 +107,7 @@ int getRandomValue(int min, int max) {
 
 double getMin(int arr[], int arrLen) {
     int i; 
-    double min = -1;
+    double min = arr[0];
     for (i = 0; i < arrLen; i++) if (arr[i] < min) min = arr[i];
     return min;
 }
@@ -127,8 +130,7 @@ double getStandardDeviation(int arr[], int arrLen) {
     int mean = getMean(arr, arrLen);
     
     //Step 2: Subtract the mean from every element in the array and square it
-    int i;
-    int squareDiffs[arrLen];
+    int i, squareDiffs[arrLen];
     for (i = 0; i < arrLen; i++) squareDiffs[i] = pow(arr[i] - mean, 2);
     
     //Step 3: Get the mean of the differences
