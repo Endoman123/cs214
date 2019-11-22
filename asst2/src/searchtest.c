@@ -28,6 +28,8 @@ int main(int argc, char** argv) {
     char* filename = malloc(sizeof(char) * 16); 
     sprintf(filename, "%s_data.csv", SEARCH_TYPE);
     FILE* fp = fopen(filename, "a+");
+    fprintf(fp, "arrSize,subArrSize,min,max,mean,stdev\n");
+    fflush(fp);
 
     // Search time
     // We need to keep track of the times elapsed for calculation of the mean, median, and standard deviation
@@ -38,12 +40,12 @@ int main(int argc, char** argv) {
     // Workload A: increasing array size
     printf("Workload A: Increasing array size, constant subarray size\n");
     sleep(1);
-    printf("Using array sizes in multiples of 1000 up to 1000000, with 100 elements per coprocess.\n");
+    printf("Using array sizes in multiples of 1000 up to 100000, with 100 elements per coprocess.\n");
     printf("--------------------------------------------------------------------------\n");
-    sleep(1); 
-    for (i = 1; i <= 1000; ++i) {
+    sleep(1);
+    for (i = 1; i <= 100; ++i) {
         int arrSize = i * 1000; 
-        printf("Test %d/1000: %d elements\n", i, arrSize);
+        printf("Test %d/100: %d elements\n", i, arrSize);
 
         performWorkloadA(arrSize, timevalues);
    
@@ -54,21 +56,25 @@ int main(int argc, char** argv) {
         mean = getMean(timevalues, WORKLOAD_ITERATIONS);    
         stdev = getStandardDeviation(timevalues, WORKLOAD_ITERATIONS);
         
+        fprintf(fp, "%d,100,%f,%f,%f,%f\n", arrSize, min, max, mean, stdev);
+        
         printf("Min: %fms\n", min);
         printf("Max: %fms\n", max); 
         printf("Mean: %fms\n", mean);
         printf("Standard Devation: %fms\n\n", stdev);
     }
 
+    fflush(fp);
+
     // Workload B: increasing subarray size
-    printf("Workload B: Constant array size, increasing subarray size\n");
+    printf("Workload B: Constant array size, decreasing subarray size\n");
     sleep(1);
-    printf("Using arrays with 1000000, with subarray sizes in multiples of 100 elements per coprocess, up to 100000 elements.\n");
+    printf("Using arrays with 100000, with subarray sizes in multiples of 10 elements per coprocess, down to 10 elements.\n");
     printf("--------------------------------------------------------------------------\n");
     sleep(1); 
     
     // Use a single array for this
-    int arrLen = 1000000, *arr = calloc(arrLen, sizeof(int));
+    int arrLen = 100000, *arr = calloc(arrLen, sizeof(int));
     for (i = 0; i < arrLen; i++)
         arr[i] = i;  
     
@@ -80,9 +86,9 @@ int main(int argc, char** argv) {
         arr[to] = temp;
     }
 
-    for (i = 1; i <= 1000; ++i) {
-        int arrSize = i * 100;  
-        printf("Test %d/1000: %d elements per coprocess\n", i, arrSize);
+    for (i = 1; i <= 100; ++i) {
+        int arrSize = 100 - i * 10 + 10;  
+        printf("Test %d/100: %d elements per coprocess\n", i, arrSize);
         
         performWorkloadB(arr, arrLen, arrSize, timevalues);
 
@@ -91,13 +97,18 @@ int main(int argc, char** argv) {
         mean = getMean(timevalues, WORKLOAD_ITERATIONS);    
         stdev = getStandardDeviation(timevalues, WORKLOAD_ITERATIONS);
         
+        fprintf(fp, "%d,%d,%f,%f,%f,%f\n", arrLen, arrSize, min, max, mean, stdev);
+
         printf("Min: %fms\n", min);
         printf("Max: %fms\n", max); 
         printf("Mean: %fms\n", mean);
         printf("Standard Devation: %fms\n\n", stdev);
     }
 
+    fflush(fp);
+
     fclose(fp);
+
     return 0;
 }
 
@@ -173,8 +184,10 @@ int performWorkloadA(int arrLen, int *timevalues) {
        time = (int) ((end.tv_sec * SECONDS_TO_MICROSECONDS + end.tv_usec) - (start.tv_sec * SECONDS_TO_MICROSECONDS + start.tv_usec)); 
        timevalues[i] = time;
       
-        if (arr[valIdx] != val)
-            printf("not valid\n");
+       if (arr[valIdx] != val) {
+           printf("not valid\n");
+           break;
+       }
 
        // Swap the target with a random index for our next search.
        newIdx = getRandomValue(0, arrLen - 1);
