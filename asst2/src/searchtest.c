@@ -1,15 +1,20 @@
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <math.h>
 #include "multitest.h"
 
 int getRandomValue(int, int);
 int seqSearch(int[], int, int);
+double getMax(int[], int);
+double getMin(int[], int);
+double getMean(int[], int);
+double getStandardDeviation(int[], int);
 
 const int SEARCH_ITERATIONS_A = 100;
 const int NUM_ELEM_A = 500;
  
 const unsigned int WORKLOAD_ITERATIONS = 100, SECONDS_TO_MICROSECONDS = 1000000;
+
 
 int main(int argc, char** argv) {
     srand(time(0));
@@ -29,18 +34,18 @@ int main(int argc, char** argv) {
     
     //Set up the file header so boomer brains can read it
     //fprintf(fp, "Number of elements, time...\n");
-    fprintf(fp, "%d, ", nElem); //Put the number of elements as the first thing in the row.
+    fprintf(fp, "%d, ", NUM_ELEM_A); //Put the number of elements as the first thing in the row.
     fflush(fp);
 
     // Initialize array
-    arr = calloc(nElem, sizeof(int));
-    for (i = 0; i < nElem; i++)
+    arr = calloc(NUM_ELEM_A, sizeof(int));
+    for (i = 0; i < NUM_ELEM_A; i++)
         arr[i] = i;
     
     
     // Shuffle 
-    for (i = 0; i < nElem; i++) {
-        int to = getRandomValue(0, nElem - 1), temp;
+    for (i = 0; i < NUM_ELEM_A; i++) {
+        int to = getRandomValue(0, NUM_ELEM_A - 1), temp;
 
         temp = arr[i];
         arr[i] = arr[to];
@@ -52,21 +57,21 @@ int main(int argc, char** argv) {
     printf("The search is being conducted with multi-mode -%s\n", SEARCH_TYPE);
     int timevalues_A[SEARCH_ITERATIONS_A];
     
-    int val = getRandomValue(0, nElem - 1);
+    int val = getRandomValue(0, NUM_ELEM_A - 1);
     
     printf("Test A\n");
-    printf("Run the search %d times with an array of size %d\n", SEARCH_ITERATIONS_A, nElem);
+    printf("Run the search %d times with an array of size %d\n", SEARCH_ITERATIONS_A, NUM_ELEM_A);
     for (i = 0; i < SEARCH_ITERATIONS_A; i++) {
         int valIdx, newIdx, temp, time;
 
         gettimeofday(&start, NULL);
-        from = search(arr, nElem, val);
+        valIdx = search(arr, NUM_ELEM_A, val);
         gettimeofday(&end, NULL);
         time = (int) ((end.tv_sec * SECONDS_TO_MICROSECONDS + end.tv_usec) - (start.tv_sec * SECONDS_TO_MICROSECONDS + start.tv_usec)); 
         timevalues_A[i] = time;
 
         //Swap the target with a random index for our next search.
-        newIdx = getRandomValue(0, nElem - 1);
+        newIdx = getRandomValue(0, NUM_ELEM_A - 1);
         temp = arr[valIdx];
         arr[valIdx] = arr[newIdx];
         arr[newIdx] = temp;
@@ -75,7 +80,7 @@ int main(int argc, char** argv) {
     double min = getMin(timevalues_A, SEARCH_ITERATIONS_A);
     double max = getMax(timevalues_A, SEARCH_ITERATIONS_A);
     double mean = getMean(timevalues_A, SEARCH_ITERATIONS_A);    
-    double stdev = getStandardDeviation(timevalues_A);
+    double stdev = getStandardDeviation(timevalues_A, SEARCH_ITERATIONS_A);
  
     printf("Mean: %d\n", mean);
     printf("Standard Devation: %d\n", stdev);

@@ -22,9 +22,8 @@ int search(int arr[], int arrLen, int target) {
     int i;
     pthread_t threads[numThreads]; 
     
-
     for (i = 0; i < numThreads; i++) {
-        p_thread thread;
+        pthread_t thread;
         //Find where this thread should start.
         int start = MAX_THREAD_SIZE * i;
         int len = MAX_THREAD_SIZE <= arrLen - start ? MAX_THREAD_SIZE : arrLen - start; 
@@ -35,18 +34,21 @@ int search(int arr[], int arrLen, int target) {
         args -> target = target;
         args -> resultIdx = malloc(sizeof(int));
         args -> arr = arr + start;
+
         //Make the thread and get its return value from the status
         pthread_create(&thread, NULL, sequentialSearch, args);
         threads[i] = thread;
     }
-    
+   
+    int idx = -1; 
+    void* status; 
     for (i = 0; i < numThreads; i++) {
         pthread_join(threads[i], &status);
-        int idx = *((int*) status);
-        
-        if (idx >= 0) return idx + MAX_THREAD_SIZE * i;
+        idx = *((int*) status); 
     }
-    return -1; 
+
+    if (idx >= 0) return idx + MAX_THREAD_SIZE * i;
+    else return -1;
 }
 
 
