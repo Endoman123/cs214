@@ -38,7 +38,7 @@ int search(int arr[], int arrLen, int target) {
         pthread_create(&thread, NULL, sequentialSearch, args);
         pthread_join(thread, &status);
         int idx = *((int*) status);
-        if (idx >= 0) return idx;
+        if (idx >= 0) return idx + MAX_THREAD_SIZE * i;
     }
     return -1; 
 

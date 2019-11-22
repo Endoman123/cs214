@@ -4,6 +4,8 @@
 #include "multitest.h"
 
 int getRandomValue(int, int);
+int seqSearch(int[], int, int);
+
 const int SEARCH_ITERATIONS = 10;
 
 const unsigned int WORKLOAD_ITERATIONS = 100, SECONDS_TO_MICROSECONDS = 1000000;
@@ -59,7 +61,7 @@ int main(int argc, char** argv) {
         //Lets check the search in the terminal
         printf("The %s search has found the target (%d) at index %d\n", SEARCH_TYPE, val, from);
         if (arr[from] == val) printf("The search found the target correctly\n");
-        else printf("The search is scuffed\n");
+        else printf("The search is scuffed. The target is actually at index %d\n", seqSearch(arr, nElem, val));
 
         if (i < SEARCH_ITERATIONS - 1) fprintf(fp, "%d, ", time); //Each number after the total number of elements is the time it took to search.
         else fprintf(fp, "%d", time); //To make the rows look cleaner, lets end the row without a comma.
@@ -79,3 +81,10 @@ int main(int argc, char** argv) {
 int getRandomValue(int min, int max) {
     return (int)((float) rand() / RAND_MAX * (max - min + 1) + min);
 }
+
+int seqSearch(int arr[], int arrLen, int target) {
+    int i;
+    for (i = 0; i < arrLen; i++) if (arr[i] == target) return i;   
+    return -1;
+}
+
