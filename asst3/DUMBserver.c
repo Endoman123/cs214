@@ -30,5 +30,14 @@ int main(int argc, char **argv) {
     struct sockaddr_in clnt_addr;
     socklen_t clnt_addr_size = sizeof(clnt_addr);
     int clnt_sock = accept(serv_sock, (struct sockaddr*) &clnt_addr, &clnt_addr_size);
-    
+
+    // Test message
+    char str[] = "Hello World!";
+    write(clnt_sock, str, sizeof(str));
+
+    // Close
+    close(clnt_sock);
+    close(serv_sock);
+
+    return 0;    
 }
