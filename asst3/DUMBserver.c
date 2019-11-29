@@ -1,10 +1,12 @@
+#include <stdio.h>
+#include <unistd.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-const char* IP_ADDR = "placeholder";
+const char* IP_ADDR = "127.0.0.1";
 
-int main(int argc, char* argv[]) {
+int main(int argc, char **argv) {
     //User input for the server should be a port number.
     if (argc != 2) {
         printf("Error: Incorrect number of arguments.\n");
