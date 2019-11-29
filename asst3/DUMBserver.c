@@ -1,11 +1,13 @@
 #include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-const char* IP_ADDR = "placeholder"
+const char* IP_ADDR = "placeholder";
 
 int main(int argc, char* argv[]) {
     //User input for the server should be a port number.
     if (argc != 2) {
-        printf("Error: Incorrect number of arguments.\n")
+        printf("Error: Incorrect number of arguments.\n");
     }
     
     int port = atoi(argv[1]); //Parse the port from the user input
@@ -20,11 +22,11 @@ int main(int argc, char* argv[]) {
     serv_addr.sin_port = htons(port); //Set port
     
     //Listen for client connection
-    listen(serv_socket, 20);
+    listen(serv_sock, 20);
 
     //Receive connection
     struct sockaddr_in clnt_addr;
-    socklen_t cltn_addr_size = sizeof(clnt_addr);
-    int clnt_sock = accept(serv_sock, (struct*) &clnt_addr, &clnt_addr_size);
+    socklen_t clnt_addr_size = sizeof(clnt_addr);
+    int clnt_sock = accept(serv_sock, (struct sockaddr*) &clnt_addr, &clnt_addr_size);
     
 }
