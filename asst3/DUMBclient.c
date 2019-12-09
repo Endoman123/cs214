@@ -56,12 +56,6 @@ int main(int argc, char* argv[]) {
         return -1;
     }  
    
-    //Try to connect to the server. Try again if it fails. 
-    while(connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
-		printf("Error: Connection failed.\n");
-		sleep(3);
-	}
-
     int err, i;
     for (i = 0; i < 3; i++) {
         printf("Connecting...\n");
