@@ -1,10 +1,17 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <pthread.h>
+#include <ctype.h>
 
 const char* IP_ADDR = "127.0.0.1";
+
+const int MAX_QUEUE = 20;
 
 int main(int argc, char **argv) {
     //User input for the server should be a port number.
@@ -12,32 +19,95 @@ int main(int argc, char **argv) {
         printf("Error: Incorrect number of arguments.\n");
     }
     
-    int port = atoi(argv[1]); //Parse the port from the user input
-     
-    //Create server socket
-    int serv_sock = socket(AF_INET, SOCK_STREAM, 0); 
-
-    //Bind socket
-    struct sockaddr_in serv_addr;
-    serv_addr.sin_family = AF_INET; //Use IPv4
-    serv_addr.sin_addr.s_addr = inet_addr(IP_ADDR); //Set IP address
-    serv_addr.sin_port = htons(port); //Set port
+    char* port = argv[1]; //Parse the port from the user input
     
-    //Listen for client connection
-    listen(serv_sock, 20);
+    int sock;
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        printf("Error: Socket could not be created.\n");
+    }
+    
+    struct addrinfo hints = {
+        .ai_family = AF_INET,
+        .ai_socktype = SOCK_STREAM 
+    };
 
-    //Receive connection
-    struct sockaddr_in clnt_addr;
-    socklen_t clnt_addr_size = sizeof(clnt_addr);
-    int clnt_sock = accept(serv_sock, (struct sockaddr*) &clnt_addr, &clnt_addr_size);
+    struct addrinfo* info;
+    int addr_error;
+    if ((addr_error = getaddrinfo(NULL, port, &hints, &info)) != 0) {
+        printf("Error: Could not obtain address information.\n");
+        return -1;
+    }
 
-    // Test message
-    char str[] = "Hello World!";
-    write(clnt_sock, str, sizeof(str));
+    int error;
+    if ((error = bind(sock, info -> ai_addr, info -> ai_addrlen)) < 0) {
+        printf("Error: Could not bind socket to port.");
+        return -1;
+    }
+      
+    freeaddrinfo(info);
+    
+    //Set the socket to listen for connections.
+    //We also have to specify the maximum number of connections that can be queued for listening
+    listen(sock, MAX_QUEUE);
 
-    // Close
-    close(clnt_sock);
-    close(serv_sock);
+    //All of our interactions with the client have to be concurrent with other clients
+    //For this, lets have threads do the concurrency 
+    
+    struct sockaddr_storage conn_addr;
+    int addressSize = sizeof(conn_addr);
+    int conn;
+    printf("Looking for connections from clients...\n");
+    if ((conn = accept(sock, (struct sockaddr*)&conn_addr, &addressSize))) {
+        char* serverMsg = "Fuck Francisco";
+        send(conn, serverMsg, strlen(serverMsg) + 1, 0);
+    }
+}
 
-    return 0;    
+
+int receiveClientMessage(int servSocket, char** msg) {
+    //We dont know how long the message is going to be. 
+    //So we need a dynamically growing buffer to make sure we read all of
+    //the message we receive from the other end
+    //Start with an arbitrary number of bytes
+    //and grow it until we get all of the bytes we need.
+    
+    const int START_LEN = 8;
+    const int MAX_BUFFER_SIZE = 2048;
+
+    char* buffer = malloc(sizeof(char) * START_LEN);
+    int length = START_LEN;
+
+    char* nullTerminator;
+    int bufferOffset = 0, bytesReceived = 0;
+
+    do {
+        //printf("Recv() with arguments %d, %d, %d, %d\n", servSocket, buffer + bufferOffset, length - bufferOffset, 0);
+        bytesReceived = recv(servSocket, buffer + bufferOffset, length - bufferOffset, 0);
+        if (bytesReceived < 0) {
+            printf("Error: The message from the server could not be read\n");
+            *msg = "";
+            return;
+        } else if (bytesReceived == 0) {
+            *msg = "";
+            return;
+        }
+
+        bufferOffset += bytesReceived;
+
+        if ((nullTerminator = memchr(buffer + bufferOffset, '\0', length - bufferOffset)) == NULL && length < MAX_BUFFER_SIZE) {
+            length *= 2;
+            char* tempBuffer = realloc(buffer, length);
+            if (tempBuffer == NULL) {
+                printf("Error: The message from the server could not be read.\n");
+            } else {
+                buffer = tempBuffer;
+            }
+        } else if (length < MAX_BUFFER_SIZE) break; 
+    } while (nullTerminator == NULL);
+
+    //We've reached the end of the server's message.
+    //The buffer is gonna be a bit bigger than the message we received
+    //So lets cut off the end of the buffer and copy the memory over to msg.
+    *msg = calloc(strlen(buffer) + 1, sizeof(char));
+    memcpy(*msg, buffer, strlen(buffer) + 1); 
 }

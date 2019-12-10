@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
      //Create the client socket
     int sock = 0;
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        printf("Socket could not be created.\n");
+        printf("Error: Socket could not be created.\n");
         return -1;
     }  
    
