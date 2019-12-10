@@ -129,8 +129,6 @@ int receiveServerMsg(int servSocket, char** msg) {
             return;
         }
 
-        bufferOffset += bytesReceived;
-
         if ((nullTerminator = memchr(buffer + bufferOffset, '\0', length - bufferOffset)) == NULL && length < MAX_BUFFER_SIZE) {
             length *= 2;
             char* tempBuffer = realloc(buffer, length);
@@ -140,6 +138,7 @@ int receiveServerMsg(int servSocket, char** msg) {
                 buffer = tempBuffer;
             }
         } else if (length < MAX_BUFFER_SIZE) break; 
+        bufferOffset += bytesReceived;
     } while (nullTerminator == NULL);
 
     //We've reached the end of the server's message.

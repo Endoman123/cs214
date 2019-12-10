@@ -13,6 +13,9 @@ const char* IP_ADDR = "127.0.0.1";
 
 const int MAX_QUEUE = 20;
 
+void* handleClient(void*);
+int receiveClientMessage(int, char**);
+
 int main(int argc, char **argv) {
     //User input for the server should be a port number.
     if (argc != 2) {
@@ -40,7 +43,7 @@ int main(int argc, char **argv) {
 
     int error;
     if ((error = bind(sock, info -> ai_addr, info -> ai_addrlen)) < 0) {
-        printf("Error: Could not bind socket to port.");
+        printf("Error: Could not bind socket to port.\n");
         return -1;
     }
       
@@ -56,15 +59,37 @@ int main(int argc, char **argv) {
     struct sockaddr_storage conn_addr;
     int addressSize = sizeof(conn_addr);
     int conn;
+    pthread_t thread;
     printf("Looking for connections from clients...\n");
-    if ((conn = accept(sock, (struct sockaddr*)&conn_addr, &addressSize))) {
-        char* serverMsg = "Fuck Francisco";
-        send(conn, serverMsg, strlen(serverMsg) + 1, 0);
+    while ((conn = accept(sock, (struct sockaddr*)&conn_addr, &addressSize))) {
+        int* client = malloc(sizeof(int));
+        *client = conn;
+        
+        pthread_create(&thread, NULL, handleClient, (void*)client);
+        pthread_detach(thread); 
     }
 }
 
+void* handleClient(void* args) {
+    //Get the socket from the args
+    int sock = *((int*) args);
 
-int receiveClientMessage(int servSocket, char** msg) {
+    while (1) {
+        char* clientMessage;
+        int strLen = receiveClientMessage(sock, &clientMessage);
+  
+        printf("The client has sent a message!\n");
+        printf("Client %d sent the message \"%s\"\n", sock, clientMessage);
+
+        char* serverResponse;
+        serverResponse = "Message received";
+        send(sock, serverResponse, strlen(serverResponse) + 1, 0);
+
+        free(clientMessage);
+    }
+}
+
+int receiveClientMessage(int clientSocket, char** msg) {
     //We dont know how long the message is going to be. 
     //So we need a dynamically growing buffer to make sure we read all of
     //the message we receive from the other end
@@ -81,8 +106,8 @@ int receiveClientMessage(int servSocket, char** msg) {
     int bufferOffset = 0, bytesReceived = 0;
 
     do {
-        //printf("Recv() with arguments %d, %d, %d, %d\n", servSocket, buffer + bufferOffset, length - bufferOffset, 0);
-        bytesReceived = recv(servSocket, buffer + bufferOffset, length - bufferOffset, 0);
+        //printf("Recv() with arguments %d, %d, %d, %d\n", clientSocket, buffer + bufferOffset, length - bufferOffset, 0);
+        bytesReceived = recv(clientSocket, buffer + bufferOffset, length - bufferOffset, 0);
         if (bytesReceived < 0) {
             printf("Error: The message from the server could not be read\n");
             *msg = "";
@@ -92,7 +117,6 @@ int receiveClientMessage(int servSocket, char** msg) {
             return;
         }
 
-        bufferOffset += bytesReceived;
 
         if ((nullTerminator = memchr(buffer + bufferOffset, '\0', length - bufferOffset)) == NULL && length < MAX_BUFFER_SIZE) {
             length *= 2;
@@ -103,6 +127,7 @@ int receiveClientMessage(int servSocket, char** msg) {
                 buffer = tempBuffer;
             }
         } else if (length < MAX_BUFFER_SIZE) break; 
+        bufferOffset += bytesReceived;
     } while (nullTerminator == NULL);
 
     //We've reached the end of the server's message.
@@ -110,4 +135,6 @@ int receiveClientMessage(int servSocket, char** msg) {
     //So lets cut off the end of the buffer and copy the memory over to msg.
     *msg = calloc(strlen(buffer) + 1, sizeof(char));
     memcpy(*msg, buffer, strlen(buffer) + 1); 
+
+    return strlen(*msg);
 }
