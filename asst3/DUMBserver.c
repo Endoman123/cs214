@@ -78,14 +78,14 @@ void* handleClient(void* args) {
         char* clientMessage;
         int strLen = receiveClientMessage(sock, &clientMessage);
   
-        printf("The client has sent a message!\n");
-        printf("Client %d sent the message \"%s\"\n", sock, clientMessage);
+        if (clientMessage != NULL && clientMessage != "") {
+            printf("The client has sent a message!\n");
+            printf("Client %d sent the message \"%s\"\n", sock, clientMessage);
+        }
 
         char* serverResponse;
         serverResponse = "Message received";
         send(sock, serverResponse, strlen(serverResponse) + 1, 0);
-
-        free(clientMessage);
     }
 }
 

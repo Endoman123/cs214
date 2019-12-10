@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
         //flush the input buffer.  
         char ch; while ((ch = getchar()) != '\n');
 
-        free(userInput);
+        //free(userInput);
         //free(servResponse);
     }
 }
