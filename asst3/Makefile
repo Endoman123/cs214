@@ -5,3 +5,6 @@ client: DUMBclient.c
 
 server: DUMBserver.c
 	gcc -g DUMBserver.c -o DUMBserver
+
+clean:
+	rm DUMBserver DUMBclient
