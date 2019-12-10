@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include <ctype.h>
 #include <signal.h>
+#include "DUMB.h"
 
 const char* IP_ADDR = "127.0.0.1";
 
@@ -83,7 +84,7 @@ void* handleClient(void* args) {
 
     while (1) {
         char* clientMessage;
-        int strLen = receiveClientMessage(sock, &clientMessage);
+        int strLen = receiveMessage(sock, &clientMessage);
   
         if (clientMessage != NULL && clientMessage != "") {
             printf("The client has sent a message!\n");
@@ -95,54 +96,3 @@ void* handleClient(void* args) {
         send(sock, serverResponse, strlen(serverResponse) + 1, 0);
     }
 }
-
-int receiveClientMessage(int clientSocket, char** msg) {
-    //We dont know how long the message is going to be. 
-    //So we need a dynamically growing buffer to make sure we read all of
-    //the message we receive from the other end
-    //Start with an arbitrary number of bytes
-    //and grow it until we get all of the bytes we need.
-    
-    const int START_LEN = 8;
-    const int MAX_BUFFER_SIZE = 2048;
-
-    char* buffer = malloc(sizeof(char) * START_LEN);
-    int length = START_LEN;
-
-    char* nullTerminator;
-    int bufferOffset = 0, bytesReceived = 0;
-
-    do {
-        //printf("Recv() with arguments %d, %d, %d, %d\n", clientSocket, buffer + bufferOffset, length - bufferOffset, 0);
-        bytesReceived = recv(clientSocket, buffer + bufferOffset, length - bufferOffset, 0);
-        if (bytesReceived < 0) {
-            printf("Error: The message from the server could not be read\n");
-            *msg = "";
-            return;
-        } else if (bytesReceived == 0) {
-            *msg = "";
-            return;
-        }
-
-
-        if ((nullTerminator = memchr(buffer + bufferOffset, '\0', length - bufferOffset)) == NULL && length < MAX_BUFFER_SIZE) {
-            length *= 2;
-            char* tempBuffer = realloc(buffer, length);
-            if (tempBuffer == NULL) {
-                printf("Error: The message from the server could not be read.\n");
-            } else {
-                buffer = tempBuffer;
-            }
-        } else if (length < MAX_BUFFER_SIZE) break; 
-        bufferOffset += bytesReceived;
-    } while (nullTerminator == NULL);
-
-    //We've reached the end of the server's message.
-    //The buffer is gonna be a bit bigger than the message we received
-    //So lets cut off the end of the buffer and copy the memory over to msg.
-    *msg = calloc(strlen(buffer) + 1, sizeof(char));
-    memcpy(*msg, buffer, strlen(buffer) + 1); 
-
-    return strlen(*msg);
-}
-
