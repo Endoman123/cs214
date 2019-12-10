@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <ctype.h>
+#include <signal.h>
 
 const char* IP_ADDR = "127.0.0.1";
 
@@ -24,6 +25,12 @@ int main(int argc, char **argv) {
     
     char* port = argv[1]; //Parse the port from the user input
     
+    //Stop SIGPIPES from stopping the server 
+    //SIGPIPE occurs when a program tries to send or recv to or from a socket that is no longer available/connected
+    //The default action for a SIGPIPE is to kill the program
+    //We have to override this behavior so a SIGPIPE does nothing whatsoever.
+    sigaction(SIGPIPE, &(struct sigaction){SIG_IGN}, NULL);
+
     int sock;
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("Error: Socket could not be created.\n");
@@ -138,3 +145,4 @@ int receiveClientMessage(int clientSocket, char** msg) {
 
     return strlen(*msg);
 }
+
