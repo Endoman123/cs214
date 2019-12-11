@@ -17,7 +17,6 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-     
     char* host = argv[1];
     char* port = argv[2]; 
     
@@ -61,6 +60,7 @@ int main(int argc, char* argv[]) {
             break;
         }
     }
+
     freeaddrinfo(info);
 
     //We failed to connect on the last try. Abandon ship.
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     
     //Now that we're connected to the server, we can send messages.
     while (1) {
-        printf("Enter a command: ");
+        printf("[%s] dumb > ", host);
 
         char* userInput;
         scanf("%m[^\n]", &userInput); //Read up to the newline character with buffer allocation done for us.
