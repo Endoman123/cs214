@@ -119,7 +119,7 @@ void* handleClient(void* args) {
 
                 //Check for the command
                 if (strcmp(cmd, "HELLO") == 0) {
-                    serverResponse = "Hello DUMBv0 ready!";
+                    serverResponse = "HELLO DUMBv0 ready!";
                     printf("%s %s connected\n", time, ip);
                 }
                 else if (strcmp(cmd, "GDBYE") == 0) {

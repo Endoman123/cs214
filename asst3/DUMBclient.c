@@ -75,18 +75,19 @@ int main(int argc, char* argv[]) {
         receiveMessage(sock, &hello);
         printf("%s\n", hello);
         //Check if the server sent back the correct string.
-        if (strcmp(hello, "Hello DUMBv0 ready!") != 0) {
+        if (strcmp(hello, "HELLO DUMBv0 ready!") != 0) {
             printf("The server did not respond back correctly.\n"); 
             printf("Aborting connection...\n");
             return -1;
         }
     }
     
-        //Now that we're connected to the server, we can send messages.
+    //Now that we're connected to the server, we can send messages.
     while (1) {
         printf("[%s] dumb > ", host);
 
         char* userInput;
+        char* servResponse;
         scanf("%m[^\n]", &userInput); //Read up to the newline character with buffer allocation done for us.
 
         //Check if the user sent nothing.   
@@ -97,61 +98,187 @@ int main(int argc, char* argv[]) {
         char* arg;
         if (strcmp(userInput, "quit") == 0) {
             command = "GDBYE";    
+            send(sock, command, strlen(command) + 1, 0);   
+            receiveMessage(sock, &servResponse);
+            if (servResponse == NULL || strcmp(servResponse, "") == 0) {
+                return;
+            } else {
+                printf("The server responded unexpectedly.\n");
+                printf("Aborting quit...\n");
+                printf("The server sent back \"%s\"", servResponse);
+            }
         } 
         else if (strcmp(userInput, "create") == 0) {
             printf("Enter the name of the new message box: ");
             scanf(" %m[^\n]", &arg);
             asprintf(&command, "CREAT %s", arg); 
+            send(sock, command, strlen(command) + 1, 0);   
+            receiveMessage(sock, &servResponse);
+
+            if (servResponse == NULL || strcmp(servResponse, "") == 0) {
+                printf("No response from the server\n");
+                return;
+            } 
+            else if (strcmp(servResponse, "ER:EXIST") == 0) {
+                printf("The box already exists!\n");
+            } 
+            else if (strcmp(servResponse, "ER:WHAT?") == 0) {
+                printf("Your message is in some way broken or malformed.\n");
+            } 
+            else if (strcmp(servResponse, "OK!") == 0) {
+                printf("The box was created successfully!\n");
+            }
+            else {
+                printf("Unknown error\n");
+            }
         }
         else if (strcmp(userInput, "open") == 0) {
             printf("Enter the message box to open: "); 
             scanf(" %m[^\n]", &arg);
-            printf("%s\n", arg);
             asprintf(&command, "OPNBX %s", arg);
-            printf("%s\n", command);
+            send(sock, command, strlen(command) + 1, 0);   
+            receiveMessage(sock, &servResponse);
+
+            if (servResponse == NULL || strcmp(servResponse, "") == 0) {
+                printf("No response from the server\n");
+                return;
+            } 
+            else if (strcmp(servResponse, "ER:NEXST") == 0) {
+                printf("The box does not exist!\n");
+            } 
+            else if (strcmp(servResponse, "ER:OPEND") == 0) {
+                printf("The box is currently open!\n");
+            } 
+            else if (strcmp(servResponse, "ER:WHAT?") == 0) {
+                printf("Your message is in some way broken or malformed.\n");
+            } 
+            else if (strcmp(servResponse, "OK!") == 0) {
+                printf("The box was opened successfully!\n");
+            }
+            else {
+                printf("Unknown error\n");
+            }
         } 
         else if (strcmp(userInput, "next") == 0) {
             command = "NXTMG";
+            send(sock, command, strlen(command) + 1, 0);   
+            receiveMessage(sock, &servResponse);
+
+            if (servResponse == NULL || strcmp(servResponse, "") == 0) {
+                printf("No response from the server\n");
+                return;
+            } 
+            else if (strcmp(servResponse, "ER:EMPTY") == 0) {
+                printf("No messages left in the box!\n");
+            } 
+            else if (strcmp(servResponse, "ER:NOOPN") == 0) {
+                printf("You currently don't have a box open\n");
+            } 
+            else if (strcmp(servResponse, "ER:WHAT?") == 0) {
+                printf("Your message is in some way broken or malformed.\n");
+            } 
+            else {
+               char* res = strtok(servResponse, "!");
+               char* strLen = strtok(NULL, "!");
+               char* msg = strtok(servResponse, "!");
+
+               if (res == NULL || strLen == NULL || msg == NULL) {
+                   printf("Unknown error\n");
+               } 
+               else {
+                   printf("%s\n", msg);
+               }
+            }
         }
         else if (strcmp(userInput, "put") == 0) {
             printf("Enter your message: "); 
             scanf(" %m[^\n]", &arg);
-            int arglen = strlen(arg) + 1; 
+            int arglen = strlen(arg); 
             asprintf(&command, "PUTMG!%d!%s", arglen, arg);
+            send(sock, command, strlen(command) + 1, 0);   
+            receiveMessage(sock, &servResponse);
+ 
+            if (servResponse == NULL || strcmp(servResponse, "") == 0) {
+                printf("No response from the server\n");
+                return;
+            } 
+            else if (strcmp(servResponse, "ER:NOOPN") == 0) {
+                printf("You currently don't have a box open\n");
+            } 
+            else if (strcmp(servResponse, "ER:WHAT?") == 0) {
+                printf("Your message is in some way broken or malformed.\n");
+            } else { 
+               char* res = strtok(servResponse, "!");
+               char* strLen = strtok(NULL, "!");
+
+               if (res == NULL || strLen == NULL || (res != NULL && strcmp(res, "OK") != 0) || (strLen != NULL && atoi(strLen) != arglen)) {
+                   printf("Unknown error\n");
+               } 
+               else {
+                   printf("Message put successfully!\n");   
+               }
+            } 
         }
         else if (strcmp(userInput, "delete") == 0) {
             printf("Enter the name of the box to delete: "); 
             scanf(" %m[^\n]", &arg);
             asprintf(&command, "DELBX %s", arg);
+            send(sock, command, strlen(command) + 1, 0);   
+            receiveMessage(sock, &servResponse);
+            
+            if (servResponse == NULL || strcmp(servResponse, "") == 0) {
+                printf("No response from the server\n");
+                return;
+            } 
+            else if (strcmp(servResponse, "ER:NEXST") == 0) {
+                printf("The box does not exist!\n");
+            } 
+            else if (strcmp(servResponse, "ER:OPEND") == 0) {
+                printf("The box is currently open!\n");
+            } 
+            else if (strcmp(servResponse, "ER:WHAT?") == 0) {
+                printf("Your message is in some way broken or malformed.\n");
+            } 
+            else if (strcmp(servResponse, "ER:NOTMT?") == 0) {
+                printf("The box is not empty!\n");
+            }
+            else if (strcmp(servResponse, "OK!") == 0) {
+                printf("The box was deleted successfully!\n"); 
+            }
+            else {
+                printf("Unknown error\n");
+            }
         }
         else if (strcmp(userInput, "close") == 0) {
             printf("Enter the name of the box to close: "); 
             scanf(" %m[^\n]", &arg);
             asprintf(&command, "CLSBX %s", arg);
+            send(sock, command, strlen(command) + 1, 0);   
+            receiveMessage(sock, &servResponse);
+ 
+            if (servResponse == NULL || strcmp(servResponse, "") == 0) {
+                printf("No response from the server\n");
+                return;
+            } 
+            else if (strcmp(servResponse, "ER:NOOPN") == 0) {
+                printf("You don't have that box open!\n");
+            }
+            else if (strcmp(servResponse, "ER:WHAT?") == 0) {
+                printf("Your message is in some way broken or malformed.\n");
+            } 
+            else if (strcmp(servResponse, "OK!") == 0) {
+                printf("The box has been closed!\n");
+            }
+            else {
+                printf("Unknown error\n");
+            }
         }        
         else {
             command = "";
             printf("Invalid command.\n");
         }
-        
-        //If the user command is valid, 
-        if (command != NULL && command != "") {
-            //Send the message to the server.
-            send(sock, command, strlen(command) + 1, 0);   
-            
-            if (strcmp(command, "GDBYE") == 0) break; 
 
-            char* servResponse;
-            receiveMessage(sock, &servResponse);
-
-            if (servResponse != NULL && servResponse != "") {
-                printf("Server: %s\n", servResponse);
-            } else {
-                printf("Disconnecting from the server...\n");
-                break;
-            }
-        }
-
+        printf("%s\n", command);
         //flush the input buffer.  
         char ch; while ((ch = getchar()) != '\n' && ch != EOF);
 
