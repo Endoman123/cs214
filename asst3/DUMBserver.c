@@ -17,7 +17,9 @@
 
 #define MALFORMED_ERROR "ER:WHAT?"
 
-__thread messageBox openBox; // Thread local variable for which box is open.
+__thread messageBox* mailbox;
+__thread messageBox* openBox; // Thread local variable for which box is open.
+
 
 void* handleClient(void*);
 
