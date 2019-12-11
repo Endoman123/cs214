@@ -14,6 +14,11 @@ typedef struct _message {
     struct _message* next; 
 } message;
 
+typedef struct _threadArgs {
+    int sock;
+    char* ip;
+} threadArgs;
+
 int receiveMessage(int, char**);
 
 #endif

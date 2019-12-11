@@ -72,23 +72,29 @@ int main(int argc, char **argv) {
     //All of our interactions with the client have to be concurrent with other clients
     //For this, lets have threads do the concurrency 
     
-    struct sockaddr_storage conn_addr;
+    struct sockaddr_in conn_addr;
     int addressSize = sizeof(conn_addr);
     int conn;
     pthread_t thread;
     printf("Looking for connections from clients...\n");
     while ((conn = accept(sock, (struct sockaddr*)&conn_addr, &addressSize))) {
-        int* client = malloc(sizeof(int));
-        *client = conn;
-        
-        pthread_create(&thread, NULL, handleClient, (void*)client);
+        char* ip = inet_ntoa(conn_addr.sin_addr);
+
+        threadArgs args = {
+            .sock = conn,
+            .ip = ip
+        };
+
+        pthread_create(&thread, NULL, handleClient, (void*)&args);
         pthread_detach(thread); 
     }
 }
 
 void* handleClient(void* args) {
-    // Get the socket from the args
-    int sock = *((int*) args);
+    //Get the socket from the args
+    threadArgs* tArgs = (threadArgs*) args;
+    int sock = tArgs -> sock;   
+    char* ip = tArgs -> ip;
 
     while (1) {
         char* clientMessage;
@@ -110,10 +116,10 @@ void* handleClient(void* args) {
                 //Check for the command
                 if (strcmp(cmd, "HELLO") == 0) {
                     serverResponse = "Hello DUMBv0 ready!";
-                    printf("Socket %d has connected.\n", sock);
+                    printf("%s connected\n", ip);
                 }
                 else if (strcmp(cmd, "GDBYE") == 0) {
-                    printf("Socket %d has disconnected.\n", sock);
+                    printf("%s disconnected\n", ip);
                     return;
                 }
                 else if (strcmp(cmd, "CREAT") == 0) { 
