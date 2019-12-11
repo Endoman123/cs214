@@ -15,8 +15,9 @@ const char* IP_ADDR = "127.0.0.1";
 
 const int MAX_QUEUE = 20;
 
+#define MALFORMED_ERROR "ER:WHAT?"
+
 void* handleClient(void*);
-int receiveClientMessage(int, char**);
 
 int main(int argc, char **argv) {
     //User input for the server should be a port number.
@@ -89,32 +90,74 @@ void* handleClient(void* args) {
 
         if (error > 0 && clientMessage != NULL && clientMessage != "") {
             //Parse the information given to us by the client. 
-            //This is gonna be epic.
-             
             char* cmd = malloc(sizeof(char) * 6);
-            memcpy(&cmd, &clientMessage, 5);
+            snprintf(cmd, 5, "%s", clientMessage); //Copy the string over without modifying clientMessage
             cmd[5] = '\0';
-            
-            char* remainingStr = clientMessage;
-            printf("Parsing with the command \"%s\" from client %d.\n", cmd, sock);
+
+            char* remainingStr = malloc(sizeof(char) * (strlen(clientMessage) + 1)); 
+            strcpy(remainingStr, clientMessage);
 
             //Every message is delimited by spaces except for put which for some reason delimits by !s.
             if (strcmp(cmd, "PUTMG") == 0) {
                 cmd = strtok_r(remainingStr, "!", &remainingStr);
+
                 int strLen = atoi(strtok_r(remainingStr, "!", &remainingStr));   
                 char* args = strtok_r(remainingStr, "!", &remainingStr);
 
-                printf("The server received the arguments: cmd = \"%s\", message length = %d, the command args = \"%s\"", cmd, strLen, args);
             } else {
                 cmd = strtok_r(remainingStr, " ", &remainingStr);
                 char* args = strtok_r(remainingStr, " ", &remainingStr);
 
-                printf("The server received the arguments: cmd = \"%s\", the command args = \"%s\"", cmd, args);
-            }
-             
-        }
+                //Check for the command
+                if (strcmp(cmd, "HELLO") == 0) {
+                    serverResponse = "HELLO DUMBv0 ready!";
+                    printf("Socket %d has connected.\n", sock);
+                }
+                else if (strcmp(cmd, "GDBYE") == 0) {
+                    return;
+                }
+                else if (strcmp(cmd, "CREAT") == 0) { 
+                    if (args != NULL && strcmp(args, "") != 0) {
+                        //Create the mailbox with the name in args
+                        //Check for existence error.
+                        serverResponse = "TODO";
+                    } else {
+                        serverResponse = MALFORMED_ERROR;
+                    }
+                }
+                else if (strcmp(cmd, "OPNBX") == 0) { 
+                    if (args != NULL && strcmp(args, "") != 0) {
+                        serverResponse = "TODO";
+                    } else {
+                        serverResponse = MALFORMED_ERROR;
+                    }
+                }   
+                else if (strcmp(cmd, "NXTMG") == 0) {
+                    if (args == NULL || strcmp(args, "") == 0) {
+                        serverResponse = "TODO";
+                    } else {
+                        serverResponse = MALFORMED_ERROR;
+                    }
+                }       
+                else if (strcmp(cmd, "DELBX") == 0) {
+                    if (args != NULL && strcmp(args, "") != 0) {
+                        serverResponse = "TODO";
+                    } else {
+                        serverResponse = MALFORMED_ERROR;
+                    }
+                }       
+                else if (strcmp(cmd, "CLSBX") == 0) {
+                    if (args != NULL && strcmp(args, "") != 0) {
+                        serverResponse = "TODO";
+                    } else {
+                        serverResponse = MALFORMED_ERROR;
+                    }    
+                } else {
+                    serverResponse = MALFORMED_ERROR;
+                }
+            } 
+        } else if (error < 0) return;
 
-        serverResponse = "Message received";
         send(sock, serverResponse, strlen(serverResponse) + 1, 0);
     }
 }

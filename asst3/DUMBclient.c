@@ -128,16 +128,27 @@ int main(int argc, char* argv[]) {
             command = "";
             printf("Invalid command.\n");
         }
-
+        
+        //If the user command is valid, 
         if (command != NULL && command != "") {
             //Send the message to the server.
             send(sock, command, strlen(command) + 1, 0);   
             
             if (strcmp(command, "GDBYE") == 0) break; 
+
             char* servResponse;
             receiveMessage(sock, &servResponse);
 
             if (servResponse != NULL && servResponse != "") {
+                if (strcmp(command, "HELLO") == 0) {
+                    //Check if the server sent back the correct string.
+                    if (strcmp(servResponse, "Hello DUMBv0 ready!") != 0) {
+                        printf("The server did not respond back correctly.\n"); 
+                        printf("Aborting connection...\n");
+                        return -1;
+                    }
+                }
+
                 printf("Server: %s\n", servResponse);
             } else {
                 printf("Disconnecting from the server...\n");
