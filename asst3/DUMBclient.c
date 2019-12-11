@@ -69,15 +69,20 @@ int main(int argc, char* argv[]) {
         return -1;
     } else {
         printf("Successfully connected to the server!\n\n");
+        //Start the connection with the server by sending a HELLO.
+        send(sock, "HELLO", 6, 0);   
+        char* hello;
+        receiveMessage(sock, &hello);
+        printf("%s\n", hello);
+        //Check if the server sent back the correct string.
+        if (strcmp(hello, "Hello DUMBv0 ready!") != 0) {
+            printf("The server did not respond back correctly.\n"); 
+            printf("Aborting connection...\n");
+            return -1;
+        }
     }
     
-    //Start the connection with the server by sending a HELLO.
-    send(sock, "HELLO", 6, 0);   
-    char* hello;
-    receiveMessage(sock, &hello);
-    printf("%s\n", hello);
-    
-    //Now that we're connected to the server, we can send messages.
+        //Now that we're connected to the server, we can send messages.
     while (1) {
         printf("Enter a command: ");
 
@@ -140,15 +145,6 @@ int main(int argc, char* argv[]) {
             receiveMessage(sock, &servResponse);
 
             if (servResponse != NULL && servResponse != "") {
-                if (strcmp(command, "HELLO") == 0) {
-                    //Check if the server sent back the correct string.
-                    if (strcmp(servResponse, "Hello DUMBv0 ready!") != 0) {
-                        printf("The server did not respond back correctly.\n"); 
-                        printf("Aborting connection...\n");
-                        return -1;
-                    }
-                }
-
                 printf("Server: %s\n", servResponse);
             } else {
                 printf("Disconnecting from the server...\n");

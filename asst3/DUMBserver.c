@@ -90,30 +90,23 @@ void* handleClient(void* args) {
 
         if (error > 0 && clientMessage != NULL && clientMessage != "") {
             //Parse the information given to us by the client. 
-            char* cmd = malloc(sizeof(char) * 6);
-            snprintf(cmd, 5, "%s", clientMessage); //Copy the string over without modifying clientMessage
-            cmd[5] = '\0';
-
-            char* remainingStr = malloc(sizeof(char) * (strlen(clientMessage) + 1)); 
-            strcpy(remainingStr, clientMessage);
-
+            char* cmd = strtok(clientMessage, " !");
+        
             //Every message is delimited by spaces except for put which for some reason delimits by !s.
             if (strcmp(cmd, "PUTMG") == 0) {
-                cmd = strtok_r(remainingStr, "!", &remainingStr);
-
-                int strLen = atoi(strtok_r(remainingStr, "!", &remainingStr));   
-                char* args = strtok_r(remainingStr, "!", &remainingStr);
-
+                int strLen = atoi(strtok(NULL, "!"));   
+                char* args = strtok(NULL, "!");
+                serverResponse = "TODO";
             } else {
-                cmd = strtok_r(remainingStr, " ", &remainingStr);
-                char* args = strtok_r(remainingStr, " ", &remainingStr);
+                char* args = strtok(NULL, " ");
 
                 //Check for the command
                 if (strcmp(cmd, "HELLO") == 0) {
-                    serverResponse = "HELLO DUMBv0 ready!";
+                    serverResponse = "Hello DUMBv0 ready!";
                     printf("Socket %d has connected.\n", sock);
                 }
                 else if (strcmp(cmd, "GDBYE") == 0) {
+                    printf("Socket %d has disconnected.\n", sock);
                     return;
                 }
                 else if (strcmp(cmd, "CREAT") == 0) { 
@@ -158,6 +151,8 @@ void* handleClient(void* args) {
             } 
         } else if (error < 0) return;
 
+        printf("Sending socket %d the message \"%s\"\n", sock, serverResponse);
         send(sock, serverResponse, strlen(serverResponse) + 1, 0);
+        free(clientMessage);
     }
 }
