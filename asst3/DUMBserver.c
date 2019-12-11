@@ -11,11 +11,13 @@
 #include <signal.h>
 #include "DUMB.h"
 
-const char* IP_ADDR = "127.0.0.1";
+#define IP_ADDR "127.0.0.1"
 
-const int MAX_QUEUE = 20;
+#define MAX_QUEUE 20
 
 #define MALFORMED_ERROR "ER:WHAT?"
+
+__thread messageBox openBox; // Thread local variable for which box is open.
 
 void* handleClient(void*);
 
@@ -151,7 +153,6 @@ void* handleClient(void* args) {
             } 
         } else if (error < 0) return;
 
-        printf("Sending socket %d the message \"%s\"\n", sock, serverResponse);
         send(sock, serverResponse, strlen(serverResponse) + 1, 0);
         free(clientMessage);
     }
