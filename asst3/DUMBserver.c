@@ -9,19 +9,22 @@
 #include <pthread.h>
 #include <ctype.h>
 #include <signal.h>
+
 #include "DUMB.h"
 
 #define IP_ADDR "127.0.0.1"
 
 #define MAX_QUEUE 20
 
+#define SUCCESS "OK!"
+#define EXISTENCE_ERROR "ER:EXIST"
 #define MALFORMED_ERROR "ER:WHAT?"
 
 __thread messageBox* mailbox;
 __thread messageBox* openBox; // Thread local variable for which box is open.
 
-
 void* handleClient(void*);
+int createMailbox(char *);
 
 int main(int argc, char **argv) {
     //User input for the server should be a port number.
@@ -84,7 +87,7 @@ int main(int argc, char **argv) {
 }
 
 void* handleClient(void* args) {
-    //Get the socket from the args
+    // Get the socket from the args
     int sock = *((int*) args);
 
     while (1) {
@@ -115,9 +118,7 @@ void* handleClient(void* args) {
                 }
                 else if (strcmp(cmd, "CREAT") == 0) { 
                     if (args != NULL && strcmp(args, "") != 0) {
-                        //Create the mailbox with the name in args
-                        //Check for existence error.
-                        serverResponse = "TODO";
+                        serverResponse = createMailbox(args) ? SUCCESS : EXISTENCE_ERROR;
                     } else {
                         serverResponse = MALFORMED_ERROR;
                     }
@@ -158,4 +159,34 @@ void* handleClient(void* args) {
         send(sock, serverResponse, strlen(serverResponse) + 1, 0);
         free(clientMessage);
     }
+}
+
+/**
+ * Creates a mailbox for a connected client
+ */
+int createMailbox(char *name) {
+    int ret = 1;
+    if (mailbox == NULL) {
+        mailbox = malloc(sizeof(messageBox));
+        mailbox->name = name;
+    } else {
+        messageBox *ptr = mailbox, *tail;
+        while (ptr != NULL) {
+            if (!strcmp(ptr->name, name)) {
+                ret = 0;
+                break;
+            } else {
+                tail = ptr;
+                ptr = ptr->next;
+            }
+        }
+
+        if (ret) {
+            ptr = malloc(sizeof(messageBox));
+            ptr->name = name;
+            tail->next = ptr;
+        }
+    }
+
+    return ret;
 }

@@ -4,17 +4,6 @@
 #include <pthread.h>
 #include "DUMB.h" 
 
-typedef struct _messageBox {
-    struct _message* msg;
-    struct _messageBox* next;
-    pthread_mutex_t mutex_lock;
-} messageBox;
-
-typedef struct _message {
-    char* msg;
-    struct _message* next; 
-} message;
-
 /* This method receives a socket file descriptor and an input string to modify
  * Read the socket's sent message and store it in msg
  * Return -1 for failure, 0 for no message, 1 for a successful read.

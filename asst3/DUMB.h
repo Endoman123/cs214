@@ -1,7 +1,9 @@
 #ifndef _DUMB_H
 #define _DUMB_H
+#include <pthread.h>
 
 typedef struct _messageBox {
+    char *name;
     struct _message* msg;
     struct _messageBox* next;
     pthread_mutex_t mutex_lock;
