@@ -11,12 +11,17 @@
 #include <signal.h>
 #include "DUMB.h"
 
-const char* IP_ADDR = "127.0.0.1";
+#define IP_ADDR "127.0.0.1"
 
-const int MAX_QUEUE = 20;
+#define MAX_QUEUE 20
+
+#define MALFORMED_ERROR "ER:WHAT?"
+
+__thread messageBox* mailbox;
+__thread messageBox* openBox; // Thread local variable for which box is open.
+
 
 void* handleClient(void*);
-int receiveClientMessage(int, char**);
 
 int main(int argc, char **argv) {
     //User input for the server should be a port number.
@@ -84,15 +89,73 @@ void* handleClient(void* args) {
 
     while (1) {
         char* clientMessage;
+        char* serverResponse;
         int error = receiveMessage(sock, &clientMessage);
 
         if (error > 0 && clientMessage != NULL && clientMessage != "") {
-            printf("The client has sent a message!\n");
-            printf("Client %d sent the message \"%s\"\n", sock, clientMessage);
-        }
+            //Parse the information given to us by the client. 
+            char* cmd = strtok(clientMessage, " !");
+        
+            //Every message is delimited by spaces except for put which for some reason delimits by !s.
+            if (strcmp(cmd, "PUTMG") == 0) {
+                int strLen = atoi(strtok(NULL, "!"));   
+                char* args = strtok(NULL, "!");
+                serverResponse = "TODO";
+            } else {
+                char* args = strtok(NULL, " ");
 
-        char* serverResponse;
-        serverResponse = "Message received";
+                //Check for the command
+                if (strcmp(cmd, "HELLO") == 0) {
+                    serverResponse = "Hello DUMBv0 ready!";
+                    printf("Socket %d has connected.\n", sock);
+                }
+                else if (strcmp(cmd, "GDBYE") == 0) {
+                    printf("Socket %d has disconnected.\n", sock);
+                    return;
+                }
+                else if (strcmp(cmd, "CREAT") == 0) { 
+                    if (args != NULL && strcmp(args, "") != 0) {
+                        //Create the mailbox with the name in args
+                        //Check for existence error.
+                        serverResponse = "TODO";
+                    } else {
+                        serverResponse = MALFORMED_ERROR;
+                    }
+                }
+                else if (strcmp(cmd, "OPNBX") == 0) { 
+                    if (args != NULL && strcmp(args, "") != 0) {
+                        serverResponse = "TODO";
+                    } else {
+                        serverResponse = MALFORMED_ERROR;
+                    }
+                }   
+                else if (strcmp(cmd, "NXTMG") == 0) {
+                    if (args == NULL || strcmp(args, "") == 0) {
+                        serverResponse = "TODO";
+                    } else {
+                        serverResponse = MALFORMED_ERROR;
+                    }
+                }       
+                else if (strcmp(cmd, "DELBX") == 0) {
+                    if (args != NULL && strcmp(args, "") != 0) {
+                        serverResponse = "TODO";
+                    } else {
+                        serverResponse = MALFORMED_ERROR;
+                    }
+                }       
+                else if (strcmp(cmd, "CLSBX") == 0) {
+                    if (args != NULL && strcmp(args, "") != 0) {
+                        serverResponse = "TODO";
+                    } else {
+                        serverResponse = MALFORMED_ERROR;
+                    }    
+                } else {
+                    serverResponse = MALFORMED_ERROR;
+                }
+            } 
+        } else if (error < 0) return;
+
         send(sock, serverResponse, strlen(serverResponse) + 1, 0);
+        free(clientMessage);
     }
 }

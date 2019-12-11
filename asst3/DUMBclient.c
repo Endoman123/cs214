@@ -69,15 +69,20 @@ int main(int argc, char* argv[]) {
         return -1;
     } else {
         printf("Successfully connected to the server!\n\n");
+        //Start the connection with the server by sending a HELLO.
+        send(sock, "HELLO", 6, 0);   
+        char* hello;
+        receiveMessage(sock, &hello);
+        printf("%s\n", hello);
+        //Check if the server sent back the correct string.
+        if (strcmp(hello, "Hello DUMBv0 ready!") != 0) {
+            printf("The server did not respond back correctly.\n"); 
+            printf("Aborting connection...\n");
+            return -1;
+        }
     }
     
-    //Start the connection with the server by sending a HELLO.
-    send(sock, "HELLO", 6, 0);   
-    char* hello;
-    receiveMessage(sock, &hello);
-    printf("%s\n", hello);
-    
-    //Now that we're connected to the server, we can send messages.
+        //Now that we're connected to the server, we can send messages.
     while (1) {
         printf("[%s] dumb > ", host);
 
@@ -111,7 +116,8 @@ int main(int argc, char* argv[]) {
         else if (strcmp(userInput, "put") == 0) {
             printf("Enter your message: "); 
             scanf(" %m[^\n]", &arg);
-            asprintf(&command, "PUTMG %s", arg);
+            int arglen = strlen(arg) + 1; 
+            asprintf(&command, "PUTMG!%d!%s", arglen, arg);
         }
         else if (strcmp(userInput, "delete") == 0) {
             printf("Enter the name of the box to delete: "); 
@@ -127,12 +133,14 @@ int main(int argc, char* argv[]) {
             command = "";
             printf("Invalid command.\n");
         }
-
+        
+        //If the user command is valid, 
         if (command != NULL && command != "") {
             //Send the message to the server.
             send(sock, command, strlen(command) + 1, 0);   
             
             if (strcmp(command, "GDBYE") == 0) break; 
+
             char* servResponse;
             receiveMessage(sock, &servResponse);
 
