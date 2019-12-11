@@ -84,14 +84,36 @@ void* handleClient(void* args) {
 
     while (1) {
         char* clientMessage;
+        char* serverResponse;
         int error = receiveMessage(sock, &clientMessage);
 
         if (error > 0 && clientMessage != NULL && clientMessage != "") {
-            printf("The client has sent a message!\n");
-            printf("Client %d sent the message \"%s\"\n", sock, clientMessage);
+            //Parse the information given to us by the client. 
+            //This is gonna be epic.
+             
+            char* cmd = malloc(sizeof(char) * 6);
+            memcpy(&cmd, &clientMessage, 5);
+            cmd[5] = '\0';
+            
+            char* remainingStr = clientMessage;
+            printf("Parsing with the command \"%s\" from client %d.\n", cmd, sock);
+
+            //Every message is delimited by spaces except for put which for some reason delimits by !s.
+            if (strcmp(cmd, "PUTMG") == 0) {
+                cmd = strtok_r(remainingStr, "!", &remainingStr);
+                int strLen = atoi(strtok_r(remainingStr, "!", &remainingStr));   
+                char* args = strtok_r(remainingStr, "!", &remainingStr);
+
+                printf("The server received the arguments: cmd = \"%s\", message length = %d, the command args = \"%s\"", cmd, strLen, args);
+            } else {
+                cmd = strtok_r(remainingStr, " ", &remainingStr);
+                char* args = strtok_r(remainingStr, " ", &remainingStr);
+
+                printf("The server received the arguments: cmd = \"%s\", the command args = \"%s\"", cmd, args);
+            }
+             
         }
 
-        char* serverResponse;
         serverResponse = "Message received";
         send(sock, serverResponse, strlen(serverResponse) + 1, 0);
     }

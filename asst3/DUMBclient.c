@@ -111,7 +111,8 @@ int main(int argc, char* argv[]) {
         else if (strcmp(userInput, "put") == 0) {
             printf("Enter your message: "); 
             scanf(" %m[^\n]", &arg);
-            asprintf(&command, "PUTMG %s", arg);
+            int arglen = strlen(arg) + 1; 
+            asprintf(&command, "PUTMG!%d!%s", arglen, arg);
         }
         else if (strcmp(userInput, "delete") == 0) {
             printf("Enter the name of the box to delete: "); 
