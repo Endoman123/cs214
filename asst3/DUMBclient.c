@@ -71,31 +71,84 @@ int main(int argc, char* argv[]) {
         printf("Successfully connected to the server!\n\n");
     }
     
+    //Start the connection with the server by sending a HELLO.
+    send(sock, "HELLO", 6, 0);   
+    char* hello;
+    receiveMessage(sock, &hello);
+    printf("%s\n", hello);
+    
     //Now that we're connected to the server, we can send messages.
     while (1) {
-        printf("Send a message: ");
+        printf("Enter a command: ");
 
         char* userInput;
         scanf("%m[^\n]", &userInput); //Read up to the newline character with buffer allocation done for us.
 
         //Check if the user sent nothing.   
         if (userInput == NULL) userInput = "\0"; 
-
-        //Send the message to the server.
-        send(sock, userInput, strlen(userInput) + 1, 0);   
-        
-        char* servResponse;
-        receiveMessage(sock, &servResponse);
-        if (servResponse != NULL && servResponse != "") {
-            printf("Server: %s\n", servResponse);
-        } else {
-            printf("Disconnecting from the server...\n");
-            break;
+ 
+        //Compare the user input to the commands available.       
+        char* command;
+        char* arg;
+        if (strcmp(userInput, "quit") == 0) {
+            command = "GDBYE";    
+        } 
+        else if (strcmp(userInput, "create") == 0) {
+            printf("Enter the name of the new message box: ");
+            scanf(" %m[^\n]", &arg);
+            asprintf(&command, "CREAT %s", arg); 
         }
+        else if (strcmp(userInput, "open") == 0) {
+            printf("Enter the message box to open: "); 
+            scanf(" %m[^\n]", &arg);
+            printf("%s\n", arg);
+            asprintf(&command, "OPNBX %s", arg);
+            printf("%s\n", command);
+        } 
+        else if (strcmp(userInput, "next") == 0) {
+            command = "NXTMG";
+        }
+        else if (strcmp(userInput, "put") == 0) {
+            printf("Enter your message: "); 
+            scanf(" %m[^\n]", &arg);
+            asprintf(&command, "PUTMG %s", arg);
+        }
+        else if (strcmp(userInput, "delete") == 0) {
+            printf("Enter the name of the box to delete: "); 
+            scanf(" %m[^\n]", &arg);
+            asprintf(&command, "DELBX %s", arg);
+        }
+        else if (strcmp(userInput, "close") == 0) {
+            printf("Enter the name of the box to close: "); 
+            scanf(" %m[^\n]", &arg);
+            asprintf(&command, "CLSBX %s", arg);
+        }        
+        else {
+            command = "";
+            printf("Invalid command.\n");
+        }
+
+        if (command != NULL && command != "") {
+            //Send the message to the server.
+            send(sock, command, strlen(command) + 1, 0);   
+            
+            if (strcmp(command, "GDBYE") == 0) break; 
+            char* servResponse;
+            receiveMessage(sock, &servResponse);
+
+            if (servResponse != NULL && servResponse != "") {
+                printf("Server: %s\n", servResponse);
+            } else {
+                printf("Disconnecting from the server...\n");
+                break;
+            }
+        }
+
         //flush the input buffer.  
-        char ch; while ((ch = getchar()) != '\n');
+        char ch; while ((ch = getchar()) != '\n' && ch != EOF);
 
         //free(userInput);
         //free(servResponse);
     }
 }
+

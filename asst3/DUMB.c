@@ -38,7 +38,7 @@ int receiveMessage(int sock, char** msg) {
         //Recieve a number of bytes from the socket.
         bytesReceived = recv(sock, buffer + bufferOffset, length - bufferOffset, 0);
         if (bytesReceived < 0) {
-            printf("Error: The message from the server could not be read\n");
+            printf("Error: The message from socket %d could not be read.\n", sock);
             *msg = "";
             return -1;
         } else if (bytesReceived == 0) {
@@ -55,7 +55,7 @@ int receiveMessage(int sock, char** msg) {
             length *= 2;
             char* tempBuffer = realloc(buffer, length);
             if (tempBuffer == NULL) {
-                printf("Error: The message from the server could not be read.\n");
+                printf("Error: The message from socket %d could not be read.\n", sock);
                 return -1;
             } else {
                 buffer = tempBuffer;

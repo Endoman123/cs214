@@ -84,9 +84,9 @@ void* handleClient(void* args) {
 
     while (1) {
         char* clientMessage;
-        int strLen = receiveMessage(sock, &clientMessage);
-  
-        if (clientMessage != NULL && clientMessage != "") {
+        int error = receiveMessage(sock, &clientMessage);
+
+        if (error > 0 && clientMessage != NULL && clientMessage != "") {
             printf("The client has sent a message!\n");
             printf("Client %d sent the message \"%s\"\n", sock, clientMessage);
         }
