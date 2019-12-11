@@ -21,7 +21,8 @@
 #define EXISTENCE_ERROR "ER:EXIST"
 #define MALFORMED_ERROR "ER:WHAT?"
 
-__thread messageBox* mailbox;
+messageBox* mailbox;
+
 __thread messageBox* openBox; // Thread local variable for which box is open.
 
 void* handleClient(void*);
@@ -51,21 +52,24 @@ int main(int argc, char **argv) {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM 
     };
+        
+    struct sockaddr_in addr = {
+        .sin_family = AF_INET,
+        .sin_addr.s_addr = htonl(INADDR_ANY),
+        .sin_port = htons(atoi(port))
+    };
 
-    struct addrinfo* info;
-    int addr_error;
-    if ((addr_error = getaddrinfo(NULL, port, &hints, &info)) != 0) {
-        printf("Error: Could not obtain address information.\n");
+    int enable = 1;
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+        printf("Error: Could not set socket options.\n");
         return -1;
     }
-
+    
     int error;
-    if ((error = bind(sock, info -> ai_addr, info -> ai_addrlen)) < 0) {
+    if ((error = bind(sock, (struct sockaddr*) &addr, sizeof(addr))) < 0) {
         printf("Error: Could not bind socket to port.\n");
         return -1;
     }
-      
-    freeaddrinfo(info);
     
     //Set the socket to listen for connections.
     //We also have to specify the maximum number of connections that can be queued for listening
@@ -124,6 +128,7 @@ void* handleClient(void* args) {
                 }
                 else if (strcmp(cmd, "GDBYE") == 0) {
                     printf("%s %s disconnected\n", time, ip);
+                    shutdown(sock, 2);
                     return;
                 }
                 else if (strcmp(cmd, "CREAT") == 0) { 
