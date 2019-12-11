@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include <ctype.h>
 #include <signal.h>
+#include <time.h>
 
 #include "DUMB.h"
 
@@ -25,6 +26,7 @@ __thread messageBox* openBox; // Thread local variable for which box is open.
 
 void* handleClient(void*);
 int createMailbox(char *);
+char* getTime();
 
 int main(int argc, char **argv) {
     //User input for the server should be a port number.
@@ -104,6 +106,8 @@ void* handleClient(void* args) {
         if (error > 0 && clientMessage != NULL && clientMessage != "") {
             //Parse the information given to us by the client. 
             char* cmd = strtok(clientMessage, " !");
+
+            char* time = getTime();
         
             //Every message is delimited by spaces except for put which for some reason delimits by !s.
             if (strcmp(cmd, "PUTMG") == 0) {
@@ -116,10 +120,10 @@ void* handleClient(void* args) {
                 //Check for the command
                 if (strcmp(cmd, "HELLO") == 0) {
                     serverResponse = "Hello DUMBv0 ready!";
-                    printf("%s connected\n", ip);
+                    printf("%s %s connected\n", time, ip);
                 }
                 else if (strcmp(cmd, "GDBYE") == 0) {
-                    printf("%s disconnected\n", ip);
+                    printf("%s %s disconnected\n", time, ip);
                     return;
                 }
                 else if (strcmp(cmd, "CREAT") == 0) { 
@@ -195,4 +199,18 @@ int createMailbox(char *name) {
     }
 
     return ret;
+}
+
+char* getTime() {
+    time_t rawTime;
+    struct tm* tmp;
+
+    char* buffer = malloc(sizeof(char) * 50);
+
+    time(&rawTime);
+
+    tmp = localtime(&rawTime);
+
+    strftime(buffer, 50, "%H%M %d %b", tmp);
+    return buffer;
 }
