@@ -105,6 +105,7 @@ void* handleClient(void* args) {
     while (1) {
         char* clientMessage;
         char* serverResponse;
+        char* cmdError = NULL;
         int error = receiveMessage(sock, &clientMessage);
 
         if (error > 0 && clientMessage != NULL && clientMessage != "") {
@@ -112,7 +113,9 @@ void* handleClient(void* args) {
             char* cmd = strtok(clientMessage, " !");
 
             char* time = getTime();
-        
+            char* stamp;
+            asprintf(&stamp, "%s %s", time, ip);
+
             //Every message is delimited by spaces except for put which for some reason delimits by !s.
             if (strcmp(cmd, "PUTMG") == 0) {
                 int strLen = atoi(strtok(NULL, "!"));   
@@ -124,51 +127,67 @@ void* handleClient(void* args) {
                 //Check for the command
                 if (strcmp(cmd, "HELLO") == 0) {
                     serverResponse = "HELLO DUMBv0 ready!";
-                    printf("%s %s connected\n", time, ip);
+                    printf("%s connected\n", stamp);
                 }
                 else if (strcmp(cmd, "GDBYE") == 0) {
-                    printf("%s %s disconnected\n", time, ip);
-                    shutdown(sock, 2);
+                    printf("%s disconnected\n", stamp);
+                    shutdown(sock, 2); //Shut down all sends and receives.
                     return;
                 }
                 else if (strcmp(cmd, "CREAT") == 0) { 
                     if (args != NULL && strcmp(args, "") != 0) {
-                        serverResponse = createMailbox(args) ? SUCCESS : EXISTENCE_ERROR;
+                        //serverResponse = createMailbox(args) ? SUCCESS : EXISTENCE_ERROR;
+                        if (createMailbox(args)) {
+                            serverResponse = SUCCESS;
+                        } else {
+                            cmdError = EXISTENCE_ERROR;
+                        }
                     } else {
-                        serverResponse = MALFORMED_ERROR;
+                        cmdError = MALFORMED_ERROR;
                     }
                 }
                 else if (strcmp(cmd, "OPNBX") == 0) { 
                     if (args != NULL && strcmp(args, "") != 0) {
                         serverResponse = "TODO";
                     } else {
-                        serverResponse = MALFORMED_ERROR;
+                        cmdError = MALFORMED_ERROR;
                     }
                 }   
                 else if (strcmp(cmd, "NXTMG") == 0) {
                     if (args == NULL || strcmp(args, "") == 0) {
                         serverResponse = "TODO";
                     } else {
-                        serverResponse = MALFORMED_ERROR;
+                        cmdError = MALFORMED_ERROR;
                     }
                 }       
                 else if (strcmp(cmd, "DELBX") == 0) {
                     if (args != NULL && strcmp(args, "") != 0) {
                         serverResponse = "TODO";
                     } else {
-                        serverResponse = MALFORMED_ERROR;
+                        cmdError = MALFORMED_ERROR;
                     }
                 }       
                 else if (strcmp(cmd, "CLSBX") == 0) {
                     if (args != NULL && strcmp(args, "") != 0) {
                         serverResponse = "TODO";
                     } else {
-                        serverResponse = MALFORMED_ERROR;
+                        cmdError = MALFORMED_ERROR;
                     }    
                 } else {
-                    serverResponse = MALFORMED_ERROR;
+                    cmdError = MALFORMED_ERROR;
                 }
             } 
+            
+            fflush(stdout);            
+
+            printf("%s %s\n", stamp, cmd);
+
+            if (cmdError != NULL) {
+                printf("%s error hit %s\n", stamp, cmdError);
+            }   
+             
+            free(time);
+            free(stamp);
         } else if (error < 0) return;
 
         send(sock, serverResponse, strlen(serverResponse) + 1, 0);
