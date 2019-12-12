@@ -27,6 +27,7 @@ __thread messageBox* openBox; // Thread local variable for which box is open.
 
 void* handleClient(void*);
 int createMailbox(char *);
+messageBox* getMailBox(char*);
 char* getTime();
 
 int main(int argc, char **argv) {
@@ -131,40 +132,76 @@ void* handleClient(void* args) {
                 }
                 else if (strcmp(cmd, "GDBYE") == 0) {
                     printf("%s disconnected\n", stamp);
+
+                    //Close before shutdown
+                    if (openBox != NULL) {
+                        pthread_mutex_unlock(&(openBox -> mutex_lock));    
+                    }
+
                     shutdown(sock, 2); //Shut down all sends and receives.
                     return;
                 }
                 else if (strcmp(cmd, "CREAT") == 0) { 
                     if (args != NULL && strcmp(args, "") != 0) {
                         //serverResponse = createMailbox(args) ? SUCCESS : EXISTENCE_ERROR;
+                        if (mailbox == NULL) printf("Head is currently NULL\n");
+                        else printf("Head is %s before create call\n", mailbox -> name);
                         if (createMailbox(args)) {
+                            //TODO Figure out what needs to happen here with mutexing.
                             serverResponse = SUCCESS;
                         } else {
                             cmdError = EXISTENCE_ERROR;
                         }
+                        printf("After create call Head is %s\n", mailbox -> name);
                     } else {
                         cmdError = MALFORMED_ERROR;
                     }
                 }
                 else if (strcmp(cmd, "OPNBX") == 0) { 
                     if (args != NULL && strcmp(args, "") != 0) {
-                        serverResponse = "TODO";
+                        messageBox* opn = getMailBox(args);
+                        
+                        if (opn != NULL) {
+                            //Check if the box is opened by another thread with mutexing.
+                            if (pthread_mutex_trylock(&(opn -> mutex_lock)) == 0) {
+                                //The mutex is open and we've locked it.
+                                openBox = opn;
+                            } else {
+                                cmdError = "ER:OPEND";
+                            }
+                        } else {
+                            cmdError = "ER:NEXST"; 
+                        }
                     } else {
                         cmdError = MALFORMED_ERROR;
                     }
                 }   
                 else if (strcmp(cmd, "NXTMG") == 0) {
                     if (args == NULL || strcmp(args, "") == 0) {
-                        serverResponse = "TODO";
+                        //Get the next message.
+                        if (openBox -> msg == NULL) {
+                            cmdError = "ER:EMPTY"; 
+                        } else {
+                            serverResponse = openBox -> msg -> msg;
+                            openBox -> msg = openBox -> msg -> next;
+                        }
                     } else {
                         cmdError = MALFORMED_ERROR;
                     }
                 }       
                 else if (strcmp(cmd, "DELBX") == 0) {
                     if (args != NULL && strcmp(args, "") != 0) {
-                        serverResponse = "TODO";
-                    } else {
-                        cmdError = MALFORMED_ERROR;
+                        int delerr = deleteMailBox(args);
+
+                        if (delerr == 0) {
+                            serverResponse = SUCCESS;
+                        } else if (delerr == -1) {
+                            cmdError = "ER:NEXTST"; 
+                        } else if (delerr = -2) {
+                            cmdError = "ER:OPEND";
+                        } else if (delerr = -3) {
+                            cmdError = "ER:NOTMT"; 
+                        }
                     }
                 }       
                 else if (strcmp(cmd, "CLSBX") == 0) {
@@ -177,21 +214,23 @@ void* handleClient(void* args) {
                     cmdError = MALFORMED_ERROR;
                 }
             } 
-            
-            fflush(stdout);            
 
             printf("%s %s\n", stamp, cmd);
 
             if (cmdError != NULL) {
-                printf("%s error hit %s\n", stamp, cmdError);
+                printf("%s %s\n", stamp, cmdError);
             }   
              
             free(time);
             free(stamp);
+            free(clientMessage);
         } else if (error < 0) return;
 
-        send(sock, serverResponse, strlen(serverResponse) + 1, 0);
-        free(clientMessage);
+        if (cmdError != NULL) {
+            send(sock, cmdError, strlen(cmdError) + 1, 0);  
+        } else {
+            send(sock, serverResponse, strlen(serverResponse) + 1, 0);
+        }
     }
 }
 
@@ -199,30 +238,90 @@ void* handleClient(void* args) {
  * Creates a mailbox for a connected client
  */
 int createMailbox(char *name) {
-    int ret = 1;
     if (mailbox == NULL) {
         mailbox = malloc(sizeof(messageBox));
-        mailbox->name = name;
+        mailbox -> name = malloc(strlen(name) + 1);
+        asprintf(&(mailbox -> name), "%s", name);
+        mailbox -> msg = NULL; 
+        mailbox -> next = NULL;
+        pthread_mutex_init(&(mailbox -> mutex_lock), NULL); 
+        return 1;
     } else {
-        messageBox *ptr = mailbox, *tail;
-        while (ptr != NULL) {
-            if (!strcmp(ptr->name, name)) {
-                ret = 0;
-                break;
-            } else {
-                tail = ptr;
-                ptr = ptr->next;
+        messageBox *ptr, *tail;
+        for (ptr = mailbox; ptr != NULL; ptr = ptr -> next) {
+            tail = ptr;
+
+            if (strcmp(ptr -> name, name) == 0) {
+                return 0;
             }
         }
 
-        if (ret) {
+        if (ptr == NULL) {
             ptr = malloc(sizeof(messageBox));
-            ptr->name = name;
-            tail->next = ptr;
+            ptr -> name = malloc(strlen(name) + 1);
+            asprintf(&(ptr -> name), "%s", name);
+            ptr -> msg = NULL;
+            ptr -> next = NULL;
+            pthread_mutex_init(&(ptr -> mutex_lock), NULL); 
+            
+            tail -> next = ptr;
+            return 1;
         }
     }
+}
 
-    return ret;
+messageBox* getMailBox(char* name) {
+    messageBox* iter;
+    for (iter = mailbox; iter != NULL; iter = iter -> next) {
+        if (strcmp(iter -> name, name) == 0) return iter;
+    }
+    return NULL;
+} 
+
+int deleteMailBox(char* name) {
+    messageBox* prev = NULL;
+    messageBox* del = NULL;
+
+    //Find the box to delete.
+    //Could be the head or somewhere else.
+    if (strcmp(mailbox -> name, name) == 0) {
+        del = mailbox;
+    } else {
+        messageBox* iter;
+        for (iter = mailbox; iter != NULL; iter = iter -> next) {
+            if (iter -> next != NULL && strcmp(iter -> next -> name, name) == 0) {
+                //Found the box to delete        
+                prev = iter;
+                del = iter -> next;
+                break;
+            }
+        }   
+    }
+    
+    if (del == NULL) return -1; //ER:NEXST
+
+    if (pthread_mutex_trylock(&(mailbox -> mutex_lock)) == 0) {
+        //Head is not locked;
+        pthread_mutex_unlock(&(mailbox -> mutex_lock));
+
+        //Check if there's a message.
+        if (mailbox -> msg == NULL) {
+            if (del = mailbox) {
+                mailbox = mailbox -> next;
+                free(mailbox);
+            } else {
+                prev -> next = del -> next;
+                free(del);           
+            }
+            return 0;
+        } else {
+            //NOTMT
+            return -3;
+        }
+    } else {
+        //OPEND
+        return -2;
+    }
 }
 
 char* getTime() {
@@ -238,3 +337,5 @@ char* getTime() {
     strftime(buffer, 50, "%H%M %d %b", tmp);
     return buffer;
 }
+
+

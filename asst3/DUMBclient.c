@@ -38,12 +38,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    /*for (struct addrinfo* iter = info; iter != NULL; iter = iter -> ai_next) {
-        getnameinfo(iter -> ai_addr, iter -> ai_addrlen, host, strlen(host) * sizeof(char), NULL, 0, NI_NUMERICHOST);
-		inet_aton(host, &serv_addr.sin_addr);
-    }*/
-
-     //Create the client socket
+    //Create the client socket
     int sock = 0;
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("Error: Socket could not be created.\n");
@@ -278,7 +273,6 @@ int main(int argc, char* argv[]) {
             printf("Invalid command.\n");
         }
 
-        printf("%s\n", command);
         //flush the input buffer.  
         char ch; while ((ch = getchar()) != '\n' && ch != EOF);
 

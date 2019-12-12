@@ -3,15 +3,16 @@
 #include <pthread.h>
 
 typedef struct _messageBox {
-    char *name;
     struct _message* msg;
     struct _messageBox* next;
     pthread_mutex_t mutex_lock;
+    char *name;
 } messageBox;
 
 typedef struct _message {
-    char* msg;
     struct _message* next; 
+    pthread_mutex_t* mutex_lock;
+    char* msg;
 } message;
 
 typedef struct _threadArgs {
