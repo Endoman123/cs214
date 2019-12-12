@@ -118,101 +118,143 @@ void* handleClient(void* args) {
             asprintf(&stamp, "%s %s", time, ip);
 
             //Every message is delimited by spaces except for put which for some reason delimits by !s.
-            if (strcmp(cmd, "PUTMG") == 0) {
-                int strLen = atoi(strtok(NULL, "!"));   
-                char* args = strtok(NULL, "!");
-                serverResponse = "TODO";
-            } else {
+
+            //Check for the command
+            if (strcmp(cmd, "HELLO") == 0) {
                 char* args = strtok(NULL, " ");
+                serverResponse = "HELLO DUMBv0 ready!";
+                printf("%s connected\n", stamp);
+            }
+            else if (strcmp(cmd, "GDBYE") == 0) {
+                char* args = strtok(NULL, " ");
+                printf("%s disconnected\n", stamp);
 
-                //Check for the command
-                if (strcmp(cmd, "HELLO") == 0) {
-                    serverResponse = "HELLO DUMBv0 ready!";
-                    printf("%s connected\n", stamp);
+                //Close before shutdown
+                if (openBox != NULL) {
+                    pthread_mutex_unlock(&(openBox -> mutex_lock));    
                 }
-                else if (strcmp(cmd, "GDBYE") == 0) {
-                    printf("%s disconnected\n", stamp);
 
-                    //Close before shutdown
-                    if (openBox != NULL) {
-                        pthread_mutex_unlock(&(openBox -> mutex_lock));    
-                    }
-
-                    shutdown(sock, 2); //Shut down all sends and receives.
-                    return;
-                }
-                else if (strcmp(cmd, "CREAT") == 0) { 
-                    if (args != NULL && strcmp(args, "") != 0) {
-                        //serverResponse = createMailbox(args) ? SUCCESS : EXISTENCE_ERROR;
-                        if (mailbox == NULL) printf("Head is currently NULL\n");
-                        else printf("Head is %s before create call\n", mailbox -> name);
-                        if (createMailbox(args)) {
-                            //TODO Figure out what needs to happen here with mutexing.
-                            serverResponse = SUCCESS;
-                        } else {
-                            cmdError = EXISTENCE_ERROR;
-                        }
-                        printf("After create call Head is %s\n", mailbox -> name);
+                shutdown(sock, 2); //Shut down all sends and receives.
+                return;
+            }
+            else if (strcmp(cmd, "CREAT") == 0) { 
+                char* args = strtok(NULL, " ");
+                if (args != NULL && strcmp(args, "") != 0) {
+                    //serverResponse = createMailbox(args) ? SUCCESS : EXISTENCE_ERROR;
+                    if (createMailbox(args)) {
+                        serverResponse = SUCCESS;
                     } else {
-                        cmdError = MALFORMED_ERROR;
+                        cmdError = EXISTENCE_ERROR;
                     }
+                } else {
+                    cmdError = MALFORMED_ERROR;
                 }
-                else if (strcmp(cmd, "OPNBX") == 0) { 
-                    if (args != NULL && strcmp(args, "") != 0) {
-                        messageBox* opn = getMailBox(args);
-                        
-                        if (opn != NULL) {
-                            //Check if the box is opened by another thread with mutexing.
-                            if (pthread_mutex_trylock(&(opn -> mutex_lock)) == 0) {
-                                //The mutex is open and we've locked it.
-                                openBox = opn;
-                            } else {
-                                cmdError = "ER:OPEND";
-                            }
+            }
+            else if (strcmp(cmd, "OPNBX") == 0) { 
+                char* args = strtok(NULL, " ");
+                if (args != NULL && strcmp(args, "") != 0) {
+                    messageBox* opn = getMailBox(args);
+                    
+                    if (opn != NULL) {
+                        //Check if the box is opened by another thread with mutexing.
+                        if (pthread_mutex_trylock(&(opn -> mutex_lock)) == 0) {
+                            //The mutex is open and we've locked it.
+                            openBox = opn;
                         } else {
-                            cmdError = "ER:NEXST"; 
+                            cmdError = "ER:OPEND";
                         }
                     } else {
-                        cmdError = MALFORMED_ERROR;
+                        cmdError = "ER:NEXST"; 
                     }
-                }   
-                else if (strcmp(cmd, "NXTMG") == 0) {
-                    if (args == NULL || strcmp(args, "") == 0) {
+                } else {
+                    cmdError = MALFORMED_ERROR;
+                }
+            }   
+            else if (strcmp(cmd, "NXTMG") == 0) {
+                char* args = strtok(NULL, " ");
+                if (args == NULL || strcmp(args, "") == 0) {
+                    if (openBox == NULL) {
+                        cmdError = "ER:NOOPN";
+                    } else {
                         //Get the next message.
                         if (openBox -> msg == NULL) {
                             cmdError = "ER:EMPTY"; 
                         } else {
-                            serverResponse = openBox -> msg -> msg;
+                            char* ret = openBox -> msg -> msg;
+                            asprintf(&serverResponse, "OK!%d!%s", strlen(ret), ret);
                             openBox -> msg = openBox -> msg -> next;
                         }
-                    } else {
-                        cmdError = MALFORMED_ERROR;
-                    }
-                }       
-                else if (strcmp(cmd, "DELBX") == 0) {
-                    if (args != NULL && strcmp(args, "") != 0) {
-                        int delerr = deleteMailBox(args);
-
-                        if (delerr == 0) {
-                            serverResponse = SUCCESS;
-                        } else if (delerr == -1) {
-                            cmdError = "ER:NEXTST"; 
-                        } else if (delerr = -2) {
-                            cmdError = "ER:OPEND";
-                        } else if (delerr = -3) {
-                            cmdError = "ER:NOTMT"; 
-                        }
-                    }
-                }       
-                else if (strcmp(cmd, "CLSBX") == 0) {
-                    if (args != NULL && strcmp(args, "") != 0) {
-                        serverResponse = "TODO";
-                    } else {
-                        cmdError = MALFORMED_ERROR;
-                    }    
+                    }   
                 } else {
                     cmdError = MALFORMED_ERROR;
                 }
+            }       
+            else if (strcmp(cmd, "PUTMG") == 0) {
+                int strLen = atoi(strtok(NULL, "!"));   
+                char* args = strtok(NULL, "!");
+            
+                if (openBox == NULL) {
+                    cmdError = "ER:NOOPN";
+                } else {
+                    //Check for a crappy strLen
+                    if (strLen != strlen(args)) {
+                        cmdError = MALFORMED_ERROR;
+                    } else {
+                        //Check if the head is initialized
+                        if (openBox -> msg == NULL) {
+                            openBox -> msg = malloc(sizeof(message));
+                            asprintf(&(openBox -> msg -> msg), "%s", args);
+
+                            openBox -> msg -> next = NULL;
+                        } else {
+                            //Iterate until the end.
+                            message *iter, *tail;
+                            for (iter = openBox -> msg; iter != NULL; iter = iter -> next) {
+                                tail = iter;
+                            }
+
+                            iter = malloc(sizeof(message));
+                            asprintf(&(iter -> msg), "%s", args);
+                            iter -> next = NULL;
+
+                            tail -> next = iter;
+                        }       
+                        asprintf(&serverResponse, "OK!%d", strLen);
+                    }
+                }
+            }
+            else if (strcmp(cmd, "DELBX") == 0) {
+                char* args = strtok(NULL, " ");
+                if (args != NULL && strcmp(args, "") != 0) {
+                    int delerr = deleteMailBox(args);
+
+                    if (delerr == 0) {
+                        serverResponse = SUCCESS;
+                    } else if (delerr == -1) {
+                        cmdError = "ER:NEXTST"; 
+                    } else if (delerr = -2) {
+                        cmdError = "ER:OPEND";
+                    } else if (delerr = -3) {
+                        cmdError = "ER:NOTMT"; 
+                    }
+                }
+            }       
+            else if (strcmp(cmd, "CLSBX") == 0) {
+                char* args = strtok(NULL, " ");
+                if (args != NULL && strcmp(args, "") != 0) {
+                    if (openBox != NULL && strcmp(openBox -> name, args)) {
+                        pthread_mutex_unlock(&(openBox -> mutex_lock));
+                        openBox = NULL;
+
+                        serverResponse = SUCCESS;
+                    } else {
+                        cmdError = "ER:NOOPN";
+                    }
+                } else {
+                    cmdError = MALFORMED_ERROR;
+                }    
+            } else {
+                cmdError = MALFORMED_ERROR;
             } 
 
             printf("%s %s\n", stamp, cmd);
@@ -225,15 +267,14 @@ void* handleClient(void* args) {
             free(stamp);
             free(clientMessage);
         } else if (error < 0) return;
-
+        
         if (cmdError != NULL) {
             send(sock, cmdError, strlen(cmdError) + 1, 0);  
         } else {
             send(sock, serverResponse, strlen(serverResponse) + 1, 0);
         }
     }
-}
-
+}   
 /**
  * Creates a mailbox for a connected client
  */

@@ -11,7 +11,6 @@ typedef struct _messageBox {
 
 typedef struct _message {
     struct _message* next; 
-    pthread_mutex_t* mutex_lock;
     char* msg;
 } message;
 

@@ -173,16 +173,15 @@ int main(int argc, char* argv[]) {
                 printf("Your message is in some way broken or malformed.\n");
             } 
             else {
-               char* res = strtok(servResponse, "!");
-               char* strLen = strtok(NULL, "!");
-               char* msg = strtok(servResponse, "!");
+                char* res = strtok(servResponse, "!");
+                char* strLen = strtok(NULL, "!");
+                char* msg = strtok(NULL, "!");
 
-               if (res == NULL || strLen == NULL || msg == NULL) {
-                   printf("Unknown error\n");
-               } 
-               else {
-                   printf("%s\n", msg);
-               }
+                if (res != NULL && strcmp(res, "OK") == 0 && msg != NULL && atoi(strLen) == strlen(msg)) {
+                    printf("%s\n", msg);
+                } else {
+                    printf("Unknown error\n");
+                }
             }
         }
         else if (strcmp(userInput, "put") == 0) {
@@ -190,6 +189,7 @@ int main(int argc, char* argv[]) {
             scanf(" %m[^\n]", &arg);
             int arglen = strlen(arg); 
             asprintf(&command, "PUTMG!%d!%s", arglen, arg);
+            printf("Sending %s\n", command);
             send(sock, command, strlen(command) + 1, 0);   
             receiveMessage(sock, &servResponse);
  
