@@ -1,0 +1,5 @@
+1) Used our client to connect to a friend's server
+2) Simulated hosting by using one iLab as a server and another as a client
+3) Connect to server, SIGINT client 
+3) Connected two clients to a server
+3a) 

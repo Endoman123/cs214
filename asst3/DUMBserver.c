@@ -18,8 +18,13 @@
 #define MAX_QUEUE 20
 
 #define SUCCESS "OK!"
-#define EXISTENCE_ERROR "ER:EXIST"
-#define MALFORMED_ERROR "ER:WHAT?"
+#define ERR_EXISTENCE "ER:EXIST"
+#define ERR_MALFORMED "ER:WHAT?"
+#define ERR_NO_OPEN "ER:NOOPN"
+#define ERR_NOEXIST "ER:NEXST"
+#define ERR_NOTEMPTY "ER:NOTMT"
+#define ERR_OPENED "ER:OPEND"
+#define ERR_EMPTY "ER:EMPTY"
 
 messageBox* mailbox;
 
@@ -140,14 +145,14 @@ void* handleClient(void* args) {
             else if (strcmp(cmd, "CREAT") == 0) { 
                 char* args = strtok(NULL, " ");
                 if (args != NULL && strcmp(args, "") != 0) {
-                    //serverResponse = createMailbox(args) ? SUCCESS : EXISTENCE_ERROR;
+                    //serverResponse = createMailbox(args) ? SUCCESS : ERR_EXISTENCE;
                     if (createMailbox(args)) {
                         serverResponse = SUCCESS;
                     } else {
-                        cmdError = EXISTENCE_ERROR;
+                        cmdError = ERR_EXISTENCE;
                     }
                 } else {
-                    cmdError = MALFORMED_ERROR;
+                    cmdError = ERR_MALFORMED;
                 }
             }
             else if (strcmp(cmd, "OPNBX") == 0) { 
@@ -161,24 +166,24 @@ void* handleClient(void* args) {
                             //The mutex is open and we've locked it.
                             openBox = opn;
                         } else {
-                            cmdError = "ER:OPEND";
+                            cmdError = ERR_OPENED;
                         }
                     } else {
-                        cmdError = "ER:NEXST"; 
+                        cmdError = ERR_NOEXIST; 
                     }
                 } else {
-                    cmdError = MALFORMED_ERROR;
+                    cmdError = ERR_MALFORMED;
                 }
             }   
             else if (strcmp(cmd, "NXTMG") == 0) {
                 char* args = strtok(NULL, " ");
                 if (args == NULL || strcmp(args, "") == 0) {
                     if (openBox == NULL) {
-                        cmdError = "ER:NOOPN";
+                        cmdError = ERR_NO_OPEN;
                     } else {
                         //Get the next message.
                         if (openBox -> msg == NULL) {
-                            cmdError = "ER:EMPTY"; 
+                            cmdError = ERR_EMPTY; 
                         } else {
                             char* ret = openBox -> msg -> msg;
                             asprintf(&serverResponse, "OK!%d!%s", strlen(ret), ret);
@@ -186,7 +191,7 @@ void* handleClient(void* args) {
                         }
                     }   
                 } else {
-                    cmdError = MALFORMED_ERROR;
+                    cmdError = ERR_MALFORMED;
                 }
             }       
             else if (strcmp(cmd, "PUTMG") == 0) {
@@ -194,11 +199,11 @@ void* handleClient(void* args) {
                 char* args = strtok(NULL, "!");
             
                 if (openBox == NULL) {
-                    cmdError = "ER:NOOPN";
+                    cmdError = ERR_NO_OPEN;
                 } else {
                     //Check for a crappy strLen
                     if (strLen != strlen(args)) {
-                        cmdError = MALFORMED_ERROR;
+                        cmdError = ERR_MALFORMED;
                     } else {
                         //Check if the head is initialized
                         if (openBox -> msg == NULL) {
@@ -233,9 +238,9 @@ void* handleClient(void* args) {
                     } else if (delerr == -1) {
                         cmdError = "ER:NEXTST"; 
                     } else if (delerr = -2) {
-                        cmdError = "ER:OPEND";
+                        cmdError = ERR_OPENED;
                     } else if (delerr = -3) {
-                        cmdError = "ER:NOTMT"; 
+                        cmdError = ERR_NOTEMPTY; 
                     }
                 }
             }       
@@ -248,13 +253,13 @@ void* handleClient(void* args) {
 
                         serverResponse = SUCCESS;
                     } else {
-                        cmdError = "ER:NOOPN";
+                        cmdError = ERR_NO_OPEN;
                     }
                 } else {
-                    cmdError = MALFORMED_ERROR;
+                    cmdError = ERR_MALFORMED;
                 }    
             } else {
-                cmdError = MALFORMED_ERROR;
+                cmdError = ERR_MALFORMED;
             } 
 
             printf("%s %s\n", stamp, cmd);
