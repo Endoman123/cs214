@@ -17,15 +17,6 @@
 
 #define MAX_QUEUE 20
 
-#define SUCCESS "OK!"
-#define ERR_EXISTENCE "ER:EXIST"
-#define ERR_MALFORMED "ER:WHAT?"
-#define ERR_NO_OPEN "ER:NOOPN"
-#define ERR_NOEXIST "ER:NEXST"
-#define ERR_NOTEMPTY "ER:NOTMT"
-#define ERR_OPENED "ER:OPEND"
-#define ERR_EMPTY "ER:EMPTY"
-
 messageBox* mailbox;
 
 __thread messageBox* openBox; // Thread local variable for which box is open.

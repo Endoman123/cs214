@@ -1,5 +1,12 @@
-1) Used our client to connect to a friend's server
+1) Used client to connect to a different DUMBserver implementation
 2) Simulated hosting by using one iLab as a server and another as a client
-3) Connect to server, SIGINT client 
-3) Connected two clients to a server
-3a) 
+3) Connect to server, SIGINT client
+4) Connect to client, SIGINT server 
+5) Error Tests
+5a) Creating two mailboxes with the same name
+5b) Opening a box that does not exist
+5c) Opening 
+5) Connected two clients to a server
+5a) Create mailbox
+5b) Attempt simultaneous access to a mailbox
+5c) Switch mailbox access between clients

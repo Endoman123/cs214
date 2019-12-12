@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <ctype.h>
+
 #include "DUMB.h"
 
 int main(int argc, char* argv[]) {
@@ -114,13 +115,13 @@ int main(int argc, char* argv[]) {
                 printf("No response from the server\n");
                 return;
             } 
-            else if (strcmp(servResponse, "ER:EXIST") == 0) {
+            else if (strcmp(servResponse, ERR_EXISTENCE) == 0) {
                 printf("The box already exists!\n");
             } 
-            else if (strcmp(servResponse, "ER:WHAT?") == 0) {
+            else if (strcmp(servResponse, ERR_MALFORMED) == 0) {
                 printf("Your message is in some way broken or malformed.\n");
             } 
-            else if (strcmp(servResponse, "OK!") == 0) {
+            else if (strcmp(servResponse, SUCCESS) == 0) {
                 printf("The box was created successfully!\n");
             }
             else {
@@ -138,16 +139,16 @@ int main(int argc, char* argv[]) {
                 printf("No response from the server\n");
                 return;
             } 
-            else if (strcmp(servResponse, "ER:NEXST") == 0) {
+            else if (strcmp(servResponse, ERR_NOEXIST) == 0) {
                 printf("The box does not exist!\n");
             } 
-            else if (strcmp(servResponse, "ER:OPEND") == 0) {
+            else if (strcmp(servResponse, ERR_OPENED) == 0) {
                 printf("The box is currently open!\n");
             } 
-            else if (strcmp(servResponse, "ER:WHAT?") == 0) {
+            else if (strcmp(servResponse, ERR_MALFORMED) == 0) {
                 printf("Your message is in some way broken or malformed.\n");
             } 
-            else if (strcmp(servResponse, "OK!") == 0) {
+            else if (strcmp(servResponse, SUCCESS) == 0) {
                 printf("The box was opened successfully!\n");
             }
             else {
@@ -163,13 +164,13 @@ int main(int argc, char* argv[]) {
                 printf("No response from the server\n");
                 return;
             } 
-            else if (strcmp(servResponse, "ER:EMPTY") == 0) {
+            else if (strcmp(servResponse, ERR_EMPTY) == 0) {
                 printf("No messages left in the box!\n");
             } 
-            else if (strcmp(servResponse, "ER:NOOPN") == 0) {
+            else if (strcmp(servResponse, ERR_NO_OPEN) == 0) {
                 printf("You currently don't have a box open\n");
             } 
-            else if (strcmp(servResponse, "ER:WHAT?") == 0) {
+            else if (strcmp(servResponse, ERR_MALFORMED) == 0) {
                 printf("Your message is in some way broken or malformed.\n");
             } 
             else {
@@ -197,10 +198,10 @@ int main(int argc, char* argv[]) {
                 printf("No response from the server\n");
                 return;
             } 
-            else if (strcmp(servResponse, "ER:NOOPN") == 0) {
+            else if (strcmp(servResponse, ERR_NO_OPEN) == 0) {
                 printf("You currently don't have a box open\n");
             } 
-            else if (strcmp(servResponse, "ER:WHAT?") == 0) {
+            else if (strcmp(servResponse, ERR_MALFORMED) == 0) {
                 printf("Your message is in some way broken or malformed.\n");
             } else { 
                char* res = strtok(servResponse, "!");
@@ -225,19 +226,19 @@ int main(int argc, char* argv[]) {
                 printf("No response from the server\n");
                 return;
             } 
-            else if (strcmp(servResponse, "ER:NEXST") == 0) {
+            else if (strcmp(servResponse, ERR_NOEXIST) == 0) {
                 printf("The box does not exist!\n");
             } 
-            else if (strcmp(servResponse, "ER:OPEND") == 0) {
+            else if (strcmp(servResponse, ERR_OPENED) == 0) {
                 printf("The box is currently open!\n");
             } 
-            else if (strcmp(servResponse, "ER:WHAT?") == 0) {
+            else if (strcmp(servResponse, ERR_MALFORMED) == 0) {
                 printf("Your message is in some way broken or malformed.\n");
             } 
-            else if (strcmp(servResponse, "ER:NOTMT?") == 0) {
+            else if (strcmp(servResponse, ERR_NOTEMPTY) == 0) {
                 printf("The box is not empty!\n");
             }
-            else if (strcmp(servResponse, "OK!") == 0) {
+            else if (strcmp(servResponse, SUCCESS) == 0) {
                 printf("The box was deleted successfully!\n"); 
             }
             else {
@@ -255,13 +256,13 @@ int main(int argc, char* argv[]) {
                 printf("No response from the server\n");
                 return;
             } 
-            else if (strcmp(servResponse, "ER:NOOPN") == 0) {
+            else if (strcmp(servResponse, ERR_NO_OPEN) == 0) {
                 printf("You don't have that box open!\n");
             }
-            else if (strcmp(servResponse, "ER:WHAT?") == 0) {
+            else if (strcmp(servResponse, ERR_MALFORMED) == 0) {
                 printf("Your message is in some way broken or malformed.\n");
             } 
-            else if (strcmp(servResponse, "OK!") == 0) {
+            else if (strcmp(servResponse, SUCCESS) == 0) {
                 printf("The box has been closed!\n");
             }
             else {
